@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="app_title">OukaroManager - System App Converter</title>    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="assets/logo.png" alt="OukaroManager" class="logo" onerror="this.style.display='none'">
+                    <h1 data-translate="app_title">OukaroManager</h1>
+                </div>
+                <div class="header-controls">                    <select id="languageSelect" class="language-selector">
+                        <option value="en">English</option>
+                        <option value="zh">简体中文</option>
+                    </select>
+                    <button id="refreshBtn" class="btn btn-secondary" data-translate="refresh">Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span data-translate="status_kernelsu">KernelSU:</span>
+                <span id="ksuStatus" class="status-value">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span data-translate="status_converted">Converted Apps:</span>
+                <span id="convertedCount" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span data-translate="status_queue">Queue:</span>
+                <span id="queueCount" class="status-value">0</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mode Selection -->
+            <div class="mode-section">
+                <h2 data-translate="conversion_mode">Conversion Mode</h2>
+                <div class="mode-options">
+                    <label class="radio-option">
+                        <input type="radio" name="conversionMode" value="system" checked>
+                        <span class="radio-custom"></span>
+                        <div class="mode-info">
+                            <strong>/system/app/</strong>
+                            <p data-translate="mode_system_desc">Standard system apps with basic privileges</p>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="conversionMode" value="priv-app">
+                        <span class="radio-custom"></span>
+                        <div class="mode-info">
+                            <strong>/system/priv-app/</strong>
+                            <p data-translate="mode_privapp_desc">Privileged system apps with enhanced permissions</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- App Management Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="user-apps" data-translate="tab_user_apps">User Apps</button>
+                <button class="tab-button" data-tab="system-apps" data-translate="tab_system_apps">System Apps</button>
+                <button class="tab-button" data-tab="converted-apps" data-translate="tab_converted">Converted Apps</button>
+            </div>
+
+            <!-- User Apps Tab -->
+            <div id="user-apps" class="tab-content active">
+                <div class="section-header">
+                    <h3 data-translate="user_apps_title">User Installed Apps</h3>
+                    <div class="search-box">
+                        <input type="text" id="userAppSearch" placeholder="Search apps..." data-translate-placeholder="search_placeholder">
+                        <button id="selectAllUser" class="btn btn-secondary" data-translate="select_all">Select All</button>
+                    </div>
+                </div>
+                <div id="userAppsList" class="apps-list">
+                    <div class="loading" data-translate="loading">Loading apps...</div>
+                </div>
+            </div>
+
+            <!-- System Apps Tab -->
+            <div id="system-apps" class="tab-content">
+                <div class="section-header">
+                    <h3 data-translate="system_apps_title">System Apps</h3>
+                    <div class="search-box">
+                        <input type="text" id="systemAppSearch" placeholder="Search system apps..." data-translate-placeholder="search_placeholder">
+                    </div>
+                </div>
+                <div id="systemAppsList" class="apps-list">
+                    <div class="loading" data-translate="loading">Loading system apps...</div>
+                </div>
+            </div>
+
+            <!-- Converted Apps Tab -->
+            <div id="converted-apps" class="tab-content">
+                <div class="section-header">
+                    <h3 data-translate="converted_apps_title">Converted Apps</h3>
+                    <button id="revertAllBtn" class="btn btn-danger" data-translate="revert_all">Revert All</button>
+                </div>
+                <div id="convertedAppsList" class="apps-list">
+                    <div class="loading" data-translate="loading">Loading converted apps...</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-section">
+                <button id="convertBtn" class="btn btn-primary" disabled data-translate="convert_selected">Convert Selected Apps</button>
+                <button id="rebootBtn" class="btn btn-warning" data-translate="reboot_required">Reboot Required</button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p data-translate="footer_text">&copy; 2024 OukaroTeam. Licensed under GPL-3.0</p>
+            <div class="footer-links">
+                <a href="https://github.com/OukaroTeam/OukaroManager" target="_blank" data-translate="github">GitHub</a>
+                <a href="https://t.me/oukarochannel" target="_blank" data-translate="telegram">Telegram</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Dialogs -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 data-translate="confirm_title">Confirm Action</h3>
+            <p id="confirmMessage"></p>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn btn-primary" data-translate="yes">Yes</button>
+                <button id="confirmNo" class="btn btn-secondary" data-translate="no">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <h3 data-translate="processing">Processing...</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" data-translate="please_wait">Please wait...</p>
+        </div>
+    </div>    <!-- Scripts -->
+    <script src="scripts.js"></script>
+</body>
+</html>
