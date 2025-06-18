@@ -1,5 +1,10 @@
 # 📱 OukaroManager
 
+[![Build Status](https://github.com/OukaroMF/OukaroManager/workflows/Build%20KernelSU%20Module/badge.svg)](https://github.com/OukaroMF/OukaroManager/actions)
+[![License: Anti-996](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/kattgu7/Anti-996-License)
+[![KernelSU](https://img.shields.io/badge/KernelSU-Compatible-green.svg)](https://github.com/tiann/KernelSU)
+[![WebUIX](https://img.shields.io/badge/WebUIX-Compatible-orange.svg)](https://github.com/KOWX712/WebUIX)
+
 一个KernelSU模块，提供简单的WebUI来将普通Android应用转换为系统应用 — 无需ADB，无需root shell，只需点击。
 
 A KernelSU module that provides a simple WebUI to convert regular Android apps to system apps — no ADB, no root shell, just click.
@@ -128,7 +133,7 @@ We welcome contributions! Please feel free to:
 
 ## 📞 联系方式 | Contact
 
-- **GitHub**: [GitHub.com/OukaroManager](https://github.com/OukaroManager)
+- **GitHub**: [GitHub.com/OukaroMF/OukaroManager](https://github.com/OukaroMF/OukaroManager)
 - **Telegram**: [@MF_1f1e33](https://t.me/MF_1f1e33) | [@OukaroSU](https://t.me/OukaroSU)
 - **联系开发者 | Contact Developer**: [@MFnotMtF](https://t.me/MFnotMtF)
 
