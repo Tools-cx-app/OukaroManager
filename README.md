@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/OukaroMF/OukaroManager/workflows/Build%20KernelSU%20Module/badge.svg)](https://github.com/OukaroMF/OukaroManager/actions)
 [![License: Anti-996](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/kattgu7/Anti-996-License)
 [![KernelSU](https://img.shields.io/badge/KernelSU-Compatible-green.svg)](https://github.com/tiann/KernelSU)
-[![WebUIX](https://img.shields.io/badge/WebUIX-Compatible-orange.svg)](https://github.com/KOWX712/WebUIX)
+[![WebUIX](https://img.shields.io/badge/WebUIX-Compatible-orange.svg)](https://github.com/MMRLApp/WebUI-X-Portable)
 
 一个KernelSU模块，提供简单的WebUI来将普通Android应用转换为系统应用 — 无需ADB，无需root shell，只需点击。
 
