@@ -1,0 +1,46 @@
+﻿name: Build KernelSU Module
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Build module
+      run: |
+        echo " Starting module build..."
+        python build.py
+        
+    - name: Verify build output
+      run: |
+        echo " Verifying build output..."
+        if ls *.zip >/dev/null 2>&1; then
+          zip_file=$(ls *.zip | head -1)
+          echo " Build successful: $zip_file"
+          unzip -l "$zip_file"
+        else
+          echo " Build output file not found"
+          exit 1
+        fi
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: oukaromanager-module
+        path: '*.zip'
+        retention-days: 30
