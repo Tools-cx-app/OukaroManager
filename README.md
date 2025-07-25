@@ -12,16 +12,16 @@ A KernelSU module that provides a simple WebUI to convert regular Android apps t
 ## ✨ 功能特性 | Features
 
 - 🧱 **将普通应用转换为系统应用** | **Convert regular apps to system apps**
-- 📁 **支持 `/system/app/` 和 `/system/priv-app/` 两种模式** | **Supports both `/system/app/` and `/system/priv-app/` modes**
+- 📁 **支持 `System` 和 `Priv` 两种模式** | **Supports both `System` and `Priv` modes**
 - 🌐 **WebUI 兼容界面** — 通过KernelSU Manager、MMRL或WebUIX portable控制 | **WebUI compatible interface** — Control via KernelSU Manager, MMRL or WebUIX portable
-- 🛠️ **与KernelSU的magic mount协同工作**，无需手动重新挂载/system | **Works with KernelSU's magic mount**, no manual /system remounting required
+- 🛠️ **与KernelSU的挂载系统协同工作**，无需手动重新挂载/system | **Works with KernelSU's bind system**, no manual /system remounting required
 - 🌍 **多语言支持** — 支持简体中文和英文 | **Multi-language support** — Supports Simplified Chinese and English
 
 ## 📦 工作原理 | How It Works
 
-该模块使用KernelSU的overlay挂载系统将选定的用户应用注入到系统分区中，模拟它们作为预装应用的行为。
+该模块使用KernelSU的挂载系统将选定的用户应用注入到系统分区中，模拟它们作为预装应用的行为。
 
-This module uses KernelSU's overlay mount system to inject selected user applications into the system partition, simulating their behavior as pre-installed apps.
+This module uses KernelSU's mount system to inject selected user applications into the system partition, simulating their behavior as pre-installed apps.
 
 ## 🚀 安装 | Installation
 
@@ -35,7 +35,7 @@ This module uses KernelSU's overlay mount system to inject selected user applica
 1. 打开KernelSU Manager（如果KernelSU Manager不可用，可使用MMRL/WebUIX portable） | Open KernelSU Manager (if KernelSU Manager is unavailable, use MMRL/WebUIX portable)
 2. 导航到OukaroManager模块WebUI | Navigate to OukaroManager module WebUI
 3. 选择要转换的应用 | Select the apps you want to convert
-4. 在 `/system/app/` 或 `/system/priv-app/` 放置之间选择 | Choose between `/system/app/` or `/system/priv-app/` placement
+4. 在 `System` 或 `Priv` 路径之间选择 | Choose between `System` or `Priv` path
 5. 点击转换并在提示时重启 | Click convert and reboot when prompted
 
 ## ⚠️ 系统要求 | System Requirements
@@ -46,7 +46,7 @@ This module uses KernelSU's overlay mount system to inject selected user applica
 
 ## 🔧 技术细节 | Technical Details
 
-- 使用KernelSU的magic mount overlay系统 | Uses KernelSU's magic mount overlay system
+- 使用KernelSU的挂载系统 | Uses KernelSU's bind system
 - 无直接系统分区修改 | No direct system partition modifications
 - 通过模块移除可逆转更改 | Reversible changes through module removal
 - 兼容大多数Android版本 | Compatible with most Android versions
@@ -61,40 +61,22 @@ This module supports the **WebUIX** standard and can be accessed through multipl
 - **KernelSU Manager** - 内置对KernelSU模块的WebUI支持 | Built-in WebUI support for KernelSU modules
 
 ### 替代方式 | Alternative Options
-- **MMRL** - 现代模块仓库加载器，支持WebUI | Modern module repository loader with WebUI support
+- **MMRL** - 面具模块仓库加载器，支持WebUI | Magisk Module Repo Loader with WebUI support
 - **WebUIX Portable** - 独立的WebUI查看器 | Standalone WebUI viewer
 
 ## 🌍 支持的语言 | Supported Languages
 
-- 🇺🇸 **English** - 完整支持 | Full support
-- 🇨🇳 **简体中文** - 完整支持 | Full support
+- **English** - 完整支持 | Full support
+- **简体中文** - 完整支持 | Full support
 
-## 📋 项目结构 | Project Structure
-
-```
-OukaroManager/
-├── module.prop           # 模块配置 | Module configuration
-├── post-fs-data.sh      # 启动脚本（早期）| Boot script (early)
-├── service.sh           # 服务脚本（后期）| Service script (late)
-├── action.sh            # 动作脚本 | Action script
-├── webroot/             # WebUI文件 | WebUI files
-│   ├── index.html       # 主页面 | Main page
-│   ├── scripts.js       # JavaScript逻辑 | JavaScript logic
-│   ├── styles.css       # 样式表 | Stylesheets
-│   ├── locales/         # 翻译文件 | Translation files
-│   │   ├── en.json      # 英文翻译 | English translations
-│   │   └── zh.json      # 中文翻译 | Chinese translations
-│   └── assets/          # 静态资源 | Static assets
-└── README.md            # 项目说明 | Project documentation
-```
 
 ## 🔄 转换模式 | Conversion Modes
 
-### Mode 1: `/system/app/`
+### System: `/system/app/`
 标准系统应用位置，具有基本系统权限。适合大多数普通应用。
 Standard system app location with basic system privileges. Suitable for most regular apps.
 
-### Mode 2: `/system/priv-app/`
+### Priv: `/system/priv-app/`
 特权系统应用位置，具有增强的系统权限。适合需要特殊权限的应用。
 Privileged system app location with enhanced system privileges. Suitable for apps requiring special permissions.
 
@@ -131,17 +113,23 @@ We welcome contributions! Please feel free to:
 - 提交拉取请求 | Submit pull requests
 - 改进文档 | Improve documentation
 
-## 📞 联系方式 | Contact
+## 🕸 一些链接 | Some Links
 
-- **GitHub**: [GitHub.com/OukaroMF/OukaroManager](https://github.com/OukaroMF/OukaroManager)
-- **Telegram**: [@MF_1f1e33](https://t.me/MF_1f1e33) | [@OukaroSU](https://t.me/OukaroSU)
-- **联系开发者 | Contact Developer**: [@MFnotMtF](https://t.me/MFnotMtF)
+- **GitHub**: [OukaroMF/OukaroManager](https://github.com/OukaroMF/OukaroManager)
+- **Telegram**: [@MF_1f1e33](https://t.me/MF_1f1e33) | [@OukaroSU](https://t.me/OukaroSU) | [@MFnotMtF](https://t.me/MFnotMtF)
 
-## 🙏 致谢 | Acknowledgments
+## 🙏 致谢 | Acknowledgements
 
-- [KernelSU项目](https://github.com/tiann/KernelSU) - 提供强大的内核级root解决方案 | Providing powerful kernel-level root solution
-- [KOWX712/Tricky-Addon-Update-Target-List](https://github.com/KOWX712/Tricky-Addon-Update-Target-List) - WebUI设计参考 | WebUI design reference
-- 所有测试者和贡献者 | All testers and contributors
+- **[KOWX712](https://github.com/KOWX712)** - [Tricky-Addon](https://github.com/KOWX712/Tricky-Addon-Update-Target-List) 项目提供的优化灵感和应用列表管理技术
+- **[KernelSU](https://github.com/tiann/KernelSU)** - 提供强大的内核级 root 解决方案
+- **WebUIX** - 提供 WebUI 兼容性支持
+- **妳** - 所有用户和贡献者，感谢您的支持和反馈！
+
+Special thanks to:
+- **[KOWX712](https://github.com/KOWX712)** - For optimization inspiration and app list management techniques from [Tricky-Addon](https://github.com/KOWX712/Tricky-Addon-Update-Target-List)
+- **[KernelSU](https://github.com/tiann/KernelSU)** - For providing powerful kernel-level root solution
+- **WebUIX** - For WebUI compatibility support
+- **You** - All users and contributors, thank you for your support and feedback!
 
 ## ⚠️ 免责声明 | Disclaimer
 
@@ -178,7 +166,7 @@ The main terms of this license include:
 2. **劳动法合规要求** | **Labor Law Compliance**：使用者必须严格遵守所在司法管辖区的所有相关劳动和就业法律法规 | Users must strictly comply with all relevant labor and employment laws and regulations in their jurisdiction
 3. **员工权益保护** | **Employee Rights Protection**：禁止以任何方式诱导或强迫员工放弃其劳动权益 | Prohibits inducing or forcing employees to give up their labor rights in any way
 
-### 为什么选择 Anti-996 License？ | Why Choose Anti-996 License?
+### 为什么选择 Anti-996 License？ | Why Anti-996?
 
 - ✊ **保护开发者权益** | **Protect Developer Rights**：确保使用本软件的公司遵守合理的工作时间 | Ensure companies using this software comply with reasonable working hours
 - 🌟 **促进健康工作环境** | **Promote Healthy Work Environment**：反对过度加班，提倡工作与生活的平衡 | Oppose excessive overtime and advocate work-life balance

@@ -1,0 +1,42 @@
+{
+  "require": {
+    "mmrl": ">=32666",
+    "kernelsu": ">=10940",
+    "apatch": ">=10563"
+  },
+  "permissions": [
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.WRITE_SETTINGS",
+    "android.permission.SYSTEM_ALERT_WINDOW"
+  ],
+  "title": "OukaroManager - System App Converter",
+  "description": "Modern WebUIX-compatible system app converter with Material Design inspired by KOWX712/ksu-webui-demo",
+  "icon": "assets/icon.png",
+  "windowResize": true,
+  "backInterceptor": "javascript",
+  "refreshInterceptor": "javascript",
+  "pullToRefresh": true,
+  "exitConfirm": true,
+  "historyFallback": false,
+  "historyFallbackFile": "index.html",
+  "minifyOnBuild": true,
+  "themeSupport": {
+    "monet": true,
+    "dynamicColor": true,
+    "followSystem": true
+  },
+  "features": {
+    "toast": true,
+    "rippleEffect": true,
+    "modernButtons": true,
+    "batchOperations": true,
+    "advancedTools": true,
+    "logViewer": true,
+    "backupSystem": true
+  },
+  "compatibility": {
+    "webview": ">=80.0",
+    "android": ">=7.0"
+  }
+}

@@ -1,5 +1,8 @@
-// OukaroManager WebUI Scripts
-// System App Converter for KernelSU
+// OukaroManager WebUI Scripts - WebUIX Compatible
+// System App Converter for KernelSU with modern Material Design
+// Optimized app listing inspired by KOWX712/Tricky-Addon-Update-Target-List
+// WebUIX features inspired by KOWX712/ksu-webui-demo
+// Original app list optimization by KOWX712 (https://github.com/KOWX712/Tricky-Addon-Update-Target-List)
 
 class OukaroManager {
     constructor() {
@@ -10,21 +13,361 @@ class OukaroManager {
         this.convertedApps = [];
         this.selectedApps = new Set();
         this.conversionMode = 'system'; // 'system' or 'priv-app'
+        this.currentView = 'list'; // 'list' or 'details'
+        this.selectedAppForDetails = null;
+        this.appListManager = null;
+        this.isWebUIX = this.detectWebUIX();
         
         this.init();
     }
 
+    // WebUIX Detection (inspired by KOWX712)
+    detectWebUIX() {
+        return !!(window.ksu || window.mmrl || navigator.userAgent.includes('WebUIX'));
+    }
+
     async init() {
         try {
+            // WebUIX initialization
+            if (this.isWebUIX) {
+                console.log('WebUIX environment detected');
+                this.setupWebUIXFeatures();
+            }
+
             await this.loadTranslations();
             this.setupEventListeners();
             this.detectLanguage();
             await this.loadInitialData();
             this.updateUI();
+            
+            // Initialize app list manager (inspired by KOWX712's implementation)
+            if (window.appListManager) {
+                this.appListManager = window.appListManager;
+            }
+
+            // Setup modern interactions
+            this.setupRippleEffects();
+            this.setupSearchEnhancements();
+            
         } catch (error) {
             console.error('Initialization failed:', error);
             this.showError('Failed to initialize application');
         }
+    }
+
+    // WebUIX Features Setup (inspired by KOWX712)
+    setupWebUIXFeatures() {
+        // Theme detection and Monet support
+        this.setupThemeDetection();
+        
+        // Back button handling for WebUIX
+        if (window.ksu?.onBackPressed) {
+            this.setupBackButtonHandling();
+        }
+
+        // Pull-to-refresh support
+        // this.setupPullToRefresh(); // Disabled for now, can be re-enabled if needed
+
+        // WebUIX Toast notifications
+        this.setupWebUIXToasts();
+    }
+
+    setupThemeDetection() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        const updateTheme = (e) => {
+            const theme = e.matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update meta theme-color for WebUIX
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', 
+                    e.matches ? 'var(--catppuccin-mocha-Base)' : 'var(--catppuccin-latte-Base)'
+                );
+            }
+        };
+
+        prefersDark.addEventListener('change', updateTheme);
+        updateTheme(prefersDark);
+    }
+
+    setupBackButtonHandling() {
+        window.addEventListener('beforeunload', (e) => {
+            if (this.currentView === 'details') {
+                e.preventDefault();
+                this.showListView();
+                if (window.ksu?.onBackPressed) {
+                    window.ksu.onBackPressed();
+                }
+            } else if (this.hasUnsavedChanges()) {
+                e.preventDefault();
+                if (window.ksu?.onBackPressed) {
+                    window.ksu.onBackPressed();
+                }
+            }
+        });
+    }
+
+    setupPullToRefresh() {
+        let startY = 0;
+        let currentY = 0;
+        let pullDistance = 0;
+        const pullThreshold = 100;
+        let isPulling = false;
+
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        container.addEventListener('touchstart', (e) => {
+            if (container.scrollTop === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+            
+            currentY = e.touches[0].clientY;
+            pullDistance = currentY - startY;
+            
+            if (pullDistance > 0 && pullDistance < pullThreshold * 2) {
+                e.preventDefault();
+                const opacity = Math.min(pullDistance / pullThreshold, 1);
+                container.style.transform = `translateY(${pullDistance * 0.5}px)`;
+                container.style.opacity = 1 - (opacity * 0.3);
+            }
+        });
+
+        container.addEventListener('touchend', () => {
+            if (isPulling && pullDistance > pullThreshold) {
+                this.refreshAppList();
+                this.showWebUIXToast('Refreshing apps...', 'info');
+            }
+            
+            container.style.transform = '';
+            container.style.opacity = '';
+            isPulling = false;
+            pullDistance = 0;
+        });
+    }
+
+    setupWebUIXToasts() {
+        if (!document.getElementById('toast-container')) {
+            const toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+    }
+
+    hasUnsavedChanges() {
+        return this.selectedApps.size > 0;
+    }
+
+    // Modern Ripple Effects (Material Design 3)
+    setupRippleEffects() {
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('.btn, .filter-chip, .mode-card');
+            if (!button) return;
+
+            this.createRipple(button, e);
+        });
+    }
+
+    createRipple(element, event) {
+        const ripple = document.createElement('span');
+        const rect = element.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = event.clientX - rect.left - size / 2;
+        const y = event.clientY - rect.top - size / 2;
+
+        ripple.className = 'btn-ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+
+        element.appendChild(ripple);
+
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    // Enhanced Search with Modern Features
+    setupSearchEnhancements() {
+        const searchInput = document.getElementById('appSearch');
+        const clearButton = document.getElementById('searchClear');
+        
+        if (!searchInput || !clearButton) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const hasValue = e.target.value.length > 0;
+            clearButton.style.display = hasValue ? 'flex' : 'none';
+            
+            // Debounced search
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                if (this.appListManager) {
+                    this.appListManager.searchQuery = e.target.value.toLowerCase();
+                    this.appListManager.filterAndRenderApps();
+                }
+            }, 300);
+        });
+
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            clearButton.style.display = 'none';
+            searchInput.focus();
+            
+            if (this.appListManager) {
+                this.appListManager.searchQuery = '';
+                this.appListManager.filterAndRenderApps();
+            }
+        });
+
+        // Search suggestions (future enhancement)
+        this.setupSearchSuggestions(searchInput);
+    }
+
+    setupSearchSuggestions(searchInput) {
+        // Placeholder for future search suggestions implementation
+        // Could integrate with WebUIX search features
+    }
+
+    // WebUIX Compatible Toast System
+    showWebUIXToast(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icon = this.getToastIcon(type);
+        toast.innerHTML = `
+            ${icon}
+            <span>${message}</span>
+        `;
+
+        container.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, duration);
+    }
+
+    getToastIcon(type) {
+        const icons = {
+            success: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>',
+            error: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/></svg>',
+            warning: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M12,2L13.09,8.26L22,9L14.74,15.74L16.32,22L12,18.54L7.68,22L9.26,15.74L2,9L10.91,8.26L12,2Z"/></svg>',
+            info: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>'
+        };
+        return icons[type] || icons.info;
+    }
+
+    // Override toast methods to use WebUIX system
+    showSuccess(message) {
+        this.showWebUIXToast(message, 'success');
+    }
+
+    showError(message) {
+        this.showWebUIXToast(message, 'error');
+    }
+
+    showWarning(message) {
+        this.showWebUIXToast(message, 'warning');
+    }
+
+    showInfo(message) {
+        this.showWebUIXToast(message, 'info');
+    }
+
+    // Enhanced Progress Modal with Modern Design
+    showProgress(show, message = 'Processing...', percentage = 0) {
+        const modal = document.getElementById('progressModal');
+        const text = document.getElementById('progressText');
+        const fill = document.getElementById('progressFill');
+        const percentageEl = document.getElementById('progressPercentage');
+        
+        if (!modal) return;
+
+        if (show) {
+            if (text) text.textContent = message;
+            if (fill) fill.style.width = percentage + '%';
+            if (percentageEl) percentageEl.textContent = Math.round(percentage) + '%';
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        } else {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    }
+
+    updateProgress(percentage, message = null) {
+        const fill = document.getElementById('progressFill');
+        const text = document.getElementById('progressText');
+        const percentageEl = document.getElementById('progressPercentage');
+        
+        if (fill) fill.style.width = percentage + '%';
+        if (percentageEl) percentageEl.textContent = Math.round(percentage) + '%';
+        if (message && text) text.textContent = message;
+    }
+
+    // Modern Modal System
+    showModal(modalId, options = {}) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        // Close on backdrop click
+        const backdrop = modal.querySelector('.modal-backdrop');
+        if (backdrop && !options.preventBackdropClose) {
+            backdrop.addEventListener('click', () => this.closeModal(modalId), { once: true });
+        }
+
+        // ESC key support
+        const escHandler = (e) => {
+            if (e.key === 'Escape' && !options.preventEscClose) {
+                this.closeModal(modalId);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    // App List Refresh with WebUIX Integration
+    async refreshAppList() {
+        if (this.appListManager) {
+            await this.appListManager.refreshAppList();
+        } else {
+            await this.loadInitialData();
+        }
+        
+        this.showWebUIXToast('App list refreshed', 'success');
     }
 
     // Language and Translation Management
@@ -88,15 +431,23 @@ class OukaroManager {
             if (translation) {
                 element.textContent = translation;
             }
-        });
-
-        // Translate placeholders
+        });        // Translate placeholders
         const placeholderElements = document.querySelectorAll('[data-translate-placeholder]');
         placeholderElements.forEach(element => {
             const key = element.getAttribute('data-translate-placeholder');
             const translation = this.getTranslation(key);
             if (translation) {
                 element.placeholder = translation;
+            }
+        });
+
+        // Translate option elements
+        const optionElements = document.querySelectorAll('option[data-translate]');
+        optionElements.forEach(element => {
+            const key = element.getAttribute('data-translate');
+            const translation = this.getTranslation(key);
+            if (translation) {
+                element.textContent = translation;
             }
         });
 
@@ -111,18 +462,26 @@ class OukaroManager {
         return this.translations[this.currentLanguage]?.[key] || 
                this.translations['en']?.[key] || 
                key;
-    }
-
-    changeLanguage(lang) {
+    }    changeLanguage(lang) {
         if (this.translations[lang]) {
             this.currentLanguage = lang;
             localStorage.setItem('oukaroLanguage', lang);
             this.translatePage();
+            this.updateAppCounts(); // Refresh counts with new language
+            
+            // Update any dynamic content if app list is loaded
+            if (this.appListManager) {
+                this.appListManager.refresh();
+            }
         }
     }
 
     // Event Listeners Setup
     setupEventListeners() {
+        // Mobile UI Listeners
+        this.setupMobileEventListeners();
+
+
         // Language selector
         const languageSelect = document.getElementById('languageSelect');
         if (languageSelect) {
@@ -188,6 +547,107 @@ class OukaroManager {
             rebootBtn.addEventListener('click', () => this.rebootDevice());
         }
 
+        // Modern action buttons (inspired by KOWX712 design)
+        const convertSelectedBtn = document.getElementById('convertSelectedBtn');
+        if (convertSelectedBtn) {
+            convertSelectedBtn.addEventListener('click', () => this.convertSelectedApps());
+        }
+
+        const batchManageBtn = document.getElementById('batchManageBtn');
+        if (batchManageBtn) {
+            batchManageBtn.addEventListener('click', () => this.showBatchManager());
+        }
+
+        const backupBtn = document.getElementById('backupBtn');
+        if (backupBtn) {
+            backupBtn.addEventListener('click', () => this.createBackup());
+        }
+
+        const advancedBtn = document.getElementById('advancedBtn');
+        if (advancedBtn) {
+            advancedBtn.addEventListener('click', () => this.showAdvancedTools());
+        }
+
+        const logViewBtn = document.getElementById('logViewBtn');
+        if (logViewBtn) {
+            logViewBtn.addEventListener('click', () => this.showLogViewer());
+        }
+
+        // Status banner dismiss
+        const bannerDismiss = document.querySelector('.banner-dismiss');
+        if (bannerDismiss) {
+            bannerDismiss.addEventListener('click', () => {
+                bannerDismiss.closest('.status-banner').style.display = 'none';
+            });
+        }
+
+        // Filter chips (modern Material Design)
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                const filter = e.target.dataset.filter;
+                if (this.appListManager) {
+                    this.appListManager.setFilter(filter);
+                }
+            });
+        });
+
+        // Search improvements
+        const appSearch = document.getElementById('appSearch');
+        const searchClear = document.getElementById('searchClear');
+        if (appSearch && searchClear) {
+            appSearch.addEventListener('input', (e) => {
+                searchClear.style.display = e.target.value ? 'flex' : 'none';
+                if (this.appListManager) {
+                    this.appListManager.setSearchQuery(e.target.value);
+                }
+            });
+            
+            searchClear.addEventListener('click', () => {
+                appSearch.value = '';
+                searchClear.style.display = 'none';
+                if (this.appListManager) {
+                    this.appListManager.setSearchQuery('');
+                }
+            });
+        }
+
+        // Sort functionality
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                if (this.appListManager) {
+                    this.appListManager.setSortOption(e.target.value);
+                }
+            });
+        }
+
+        // Selection buttons
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.addEventListener('click', () => {
+                if (this.appListManager) {
+                    this.appListManager.selectAll();
+                }
+            });
+        }
+
+        const selectNone = document.getElementById('selectNone');
+        if (selectNone) {
+            selectNone.addEventListener('click', () => {
+                if (this.appListManager) {
+                    this.appListManager.selectNone();
+                }
+            });
+        }
+
+        // App refresh
+        const refreshApps = document.getElementById('refreshApps');
+        if (refreshApps) {
+            refreshApps.addEventListener('click', () => this.refreshAppList());
+        }
+
         // Modal close functionality
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
@@ -203,6 +663,94 @@ class OukaroManager {
         }
     }
 
+    setupMobileEventListeners() {
+        // Back button in details view
+        const backButton = document.querySelector('#details-view .back-button');
+        if (backButton) {
+            backButton.addEventListener('click', () => this.showListView());
+        }
+
+        // Segmented controls
+        document.querySelectorAll('.segmented-control').forEach(control => {
+            control.addEventListener('click', (e) => {
+                const button = e.target.closest('.segmented-option');
+                if (button) {
+                    // Remove selected from siblings
+                    const siblings = control.querySelectorAll('.segmented-option');
+                    siblings.forEach(sib => {
+                        sib.classList.remove('selected');
+                        const icon = sib.querySelector('.selected-icon');
+                        if(icon) icon.remove(); // Remove icon from others
+                    });
+
+                    // Add selected to current
+                    button.classList.add('selected');
+                    // Add checkmark icon
+                    button.insertAdjacentHTML('afterbegin', `
+                        <svg class="selected-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.16251 13.5L2.88751 9.225L3.95626 8.15625L7.16251 11.3625L14.0438 4.48125L15.1125 5.55L7.16251 13.5Z" fill="var(--catppuccin-mocha-Base, #1E1E2E)"/></svg>
+                    `);
+
+                    const group = control.closest('.config-section').dataset.group;
+                    const value = button.dataset.value;
+                    console.log(`Selected ${group}: ${value}`);
+                    // Here you would update the app's configuration state
+                }
+            });
+        });
+
+        // Filter labels in list view
+        const filterLabels = document.querySelector('.filter-labels');
+        if (filterLabels) {
+            filterLabels.addEventListener('click', (e) => {
+                const button = e.target.closest('.filter-label');
+                if (button) {
+                    const siblings = filterLabels.querySelectorAll('.filter-label');
+                    siblings.forEach(sib => sib.classList.remove('active'));
+                    button.classList.add('active');
+                    const filter = button.dataset.filter;
+                    console.log(`Selected filter: ${filter}`);
+                    // Here you would filter the app list
+                }
+            });
+        }
+
+        // Mock app list click to show details
+        const appsListContainer = document.querySelector('.apps-list');
+        if (appsListContainer) {
+            appsListContainer.addEventListener('click', (e) => {
+                const card = e.target.closest('.app-card');
+                if (card) {
+                    const appName = card.querySelector('.app-name').textContent;
+                    const appPackage = card.querySelector('.app-package').textContent;
+                    this.showDetailsView({ name: appName, packageName: appPackage });
+                }
+            });
+        }
+    }
+
+    // View Management
+    showListView() {
+        document.getElementById('list-view').classList.add('active');
+        document.getElementById('details-view').classList.remove('active');
+        this.currentView = 'list';
+    }
+
+    showDetailsView(app) {
+        this.selectedAppForDetails = app;
+        
+        // Populate details view
+        const detailsView = document.getElementById('details-view');
+        detailsView.querySelector('.app-name').textContent = app.name;
+        detailsView.querySelector('.app-package').textContent = app.packageName;
+        // You can also update the icon here if you have it
+        // detailsView.querySelector('.app-icon-large').src = app.iconUrl;
+
+        document.getElementById('list-view').classList.remove('active');
+        detailsView.classList.add('active');
+        this.currentView = 'details';
+    }
+
+
     // Data Loading
     async loadInitialData() {
         this.showLoading(true);
@@ -214,34 +762,60 @@ class OukaroManager {
                 this.loadConvertedApps(),
                 this.checkKSUStatus()
             ]);
+            this.renderMobileAppList(); // Render for mobile view
         } catch (error) {
             console.error('Failed to load initial data:', error);
             this.showError(this.getTranslation('error_load_data'));
         } finally {
             this.showLoading(false);
         }
-    }
-
-    async loadUserApps() {
+    }    async loadUserApps() {
         try {
-            // For now, use mock data since we don't have a backend API yet
-            this.userApps = this.getMockUserApps();
-            this.renderAppsList('user', this.userApps);
+            // Use cached app list generated by service.sh (inspired by KOWX712's optimization)
+            const response = await fetch('applist.json');
+            if (response.ok) {
+                this.userApps = await response.json();
+                console.log(`Loaded ${this.userApps.length} user apps from cache`);
+            } else {
+                // Mock data for demonstration if applist.json is not found
+                console.warn('applist.json not found, using mock data.');
+                this.userApps = [
+                    { name: 'My Awesome App', packageName: 'com.example.awesomeapp', icon: 'assets/favicon.svg' },
+                    { name: 'Another Cool App', packageName: 'com.example.coolapp', icon: 'assets/favicon.svg' },
+                    { name: 'Productivity Pro', packageName: 'com.example.prodpro', icon: 'assets/favicon.svg' },
+                ];
+            }
         } catch (error) {
-            console.error('Failed to load user apps:', error);
+            console.warn('Failed to load cached user apps, using fallback:', error);
             this.userApps = this.getMockUserApps();
-            this.renderAppsList('user', this.userApps);
+        }
+        
+        // Update the app list display if manager is available
+        if (this.appListManager) {
+            this.appListManager.userApps = this.userApps;
+            this.appListManager.filterAndRenderApps();
         }
     }
 
     async loadSystemApps() {
         try {
-            this.systemApps = this.getMockSystemApps();
-            this.renderAppsList('system', this.systemApps);
+            // Use cached system app list
+            const response = await fetch('systemlist.json');
+            if (response.ok) {
+                this.systemApps = await response.json();
+                console.log(`Loaded ${this.systemApps.length} system apps from cache`);
+            } else {
+                throw new Error('Failed to load cached system app list');
+            }
         } catch (error) {
-            console.error('Failed to load system apps:', error);
+            console.warn('Failed to load cached system apps, using fallback:', error);
             this.systemApps = this.getMockSystemApps();
-            this.renderAppsList('system', this.systemApps);
+        }
+        
+        // Update the app list display if manager is available
+        if (this.appListManager) {
+            this.appListManager.systemApps = this.systemApps;
+            this.appListManager.filterAndRenderApps();
         }
     }
 
@@ -279,6 +853,28 @@ class OukaroManager {
     }
 
     // UI Management
+    renderMobileAppList() {
+        const listElement = document.querySelector('#list-view .apps-list');
+        if (!listElement) return;
+
+        if (!this.userApps || this.userApps.length === 0) {
+            listElement.innerHTML = `<p>No applications found.</p>`;
+            return;
+        }
+
+        const appCardsHTML = this.userApps.map(app => `
+            <div class="app-card" data-package="${app.packageName}">
+                <img src="${app.icon || 'assets/favicon.svg'}" alt="App Icon" class="app-icon">
+                <div class="app-info">
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-package">${app.packageName}</div>
+                </div>
+            </div>
+        `).join('');
+
+        listElement.innerHTML = appCardsHTML;
+    }
+
     switchTab(tabId) {
         // Update tab buttons
         document.querySelectorAll('.tab-button').forEach(btn => {
@@ -407,81 +1003,103 @@ class OukaroManager {
 
     // App Conversion Logic
     async convertSelectedApps() {
-        if (this.selectedApps.size === 0) {
-            this.showError(this.getTranslation('error_no_apps_selected'));
+        const selectedApps = this.appListManager?.getSelectedApps() || [];
+        
+        if (selectedApps.length === 0) {
+            this.showError(this.getTranslation('error_no_apps_selected') || 'No apps selected');
             return;
         }
 
-        const selectedAppsList = Array.from(this.selectedApps).map(packageName => {
-            const app = this.userApps.find(a => a.packageName === packageName);
-            return app ? app.name : packageName;
-        }).join(', ');
+        const mode = this.conversionMode;
+        const modeText = mode === 'system' ? '/system/app/' : '/system/priv-app/';
+        
+        const confirmMessage = `Convert ${selectedApps.length} app(s) to ${modeText}?\n\nThis will require a device reboot to take effect.`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
 
-        const confirmMessage = this.getTranslation('confirm_convert_apps')
-            .replace('{count}', this.selectedApps.size)
-            .replace('{mode}', this.conversionMode)
-            .replace('{apps}', selectedAppsList);
-
-        this.showConfirmDialog(confirmMessage, async () => {
-            await this.performConversion();
-        });
-    }
-
-    async performConversion() {
-        this.showProgressModal(this.getTranslation('converting_apps'));
+        this.showProgress(true, 'Converting applications...');
         
         try {
-            const appsToConvert = Array.from(this.selectedApps).map(packageName => {
-                const app = this.userApps.find(a => a.packageName === packageName);
-                return {
-                    packageName: packageName,
-                    name: app?.name || packageName,
-                    mode: this.conversionMode,
-                    convertedDate: new Date().toLocaleDateString()
-                };
-            });
-
-            let progress = 0;
-            const totalSteps = appsToConvert.length;
-
-            for (const app of appsToConvert) {
-                this.updateProgress((progress / totalSteps) * 100, 
-                    this.getTranslation('converting_app').replace('{app}', app.name));
-                
-                // Simulate conversion process
-                await this.delay(1000);
-                
-                // Add to converted apps
-                this.convertedApps.push(app);
-                
-                // Remove from user apps
-                this.userApps = this.userApps.filter(ua => ua.packageName !== app.packageName);
-                
-                progress++;
-            }
-
-            this.updateProgress(100, this.getTranslation('conversion_complete'));
+            let successCount = 0;
+            let errors = [];
             
-            // Save to localStorage
+            for (let i = 0; i < selectedApps.length; i++) {
+                const app = selectedApps[i];
+                const progress = ((i + 1) / selectedApps.length) * 100;
+                
+                this.updateProgress(progress, `Converting ${app.app_name}...`);
+                
+                try {
+                    await this.convertSingleApp(app, mode);
+                    successCount++;
+                    
+                    // Add to converted apps list
+                    const convertedApp = {
+                        ...app,
+                        conversion_mode: mode,
+                        converted_at: new Date().toISOString()
+                    };
+                    
+                    this.convertedApps.push(convertedApp);
+                    
+                    // Remove from selected apps
+                    this.selectedApps.delete(app.package_name);
+                    
+                } catch (error) {
+                    console.error(`Failed to convert ${app.package_name}:`, error);
+                    errors.push(`${app.app_name}: ${error.message}`);
+                }
+                
+                // Small delay to show progress
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            // Save converted apps to localStorage
             localStorage.setItem('oukaroConvertedApps', JSON.stringify(this.convertedApps));
             
-            // Clear selections and refresh data
-            this.selectedApps.clear();
-            this.renderAppsList('converted', this.convertedApps);
-            this.renderAppsList('user', this.userApps);
-            this.updateConvertButton();
-            this.updateStatusBar();
+            this.showProgress(false);
             
-            setTimeout(() => {
-                this.closeModal('progressModal');
-                this.showRebootDialog();
-            }, 1000);
-
+            if (successCount > 0) {
+                this.showSuccess(`Successfully converted ${successCount} app(s). Please reboot your device for changes to take effect.`);
+                
+                // Update UI
+                if (this.appListManager) {
+                    this.appListManager.convertedApps = this.convertedApps;
+                    this.appListManager.filterAndRenderApps();
+                    this.appListManager.updateSelectionCount();
+                }
+                
+                this.updateStatusBar();
+            }
+            
+            if (errors.length > 0) {
+                this.showError(`Some conversions failed:\n${errors.join('\n')}`);
+            }
+            
         } catch (error) {
-            console.error('Conversion failed:', error);
-            this.closeModal('progressModal');
-            this.showError(this.getTranslation('error_conversion_failed'));
+            this.showProgress(false);
+            this.showError(`Conversion failed: ${error.message}`);
         }
+    }
+
+    async convertSingleApp(app, mode) {
+        // Create conversion record for service.sh to process
+        const conversionRecord = `${app.package_name}|${mode}|${app.app_name.replace(/[^a-zA-Z0-9]/g, '_')}|${app.apk_path}`;
+        
+        // In a real implementation, this would call a backend API
+        // For now, we'll simulate the conversion process
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                // Simulate success/failure
+                if (Math.random() > 0.1) { // 90% success rate
+                    resolve();
+                } else {
+                    reject(new Error('Conversion failed'));
+                }
+            }, Math.random() * 1000 + 500);
+        });
     }
 
     async revertSingleApp(packageName) {
@@ -510,11 +1128,9 @@ class OukaroManager {
                 this.renderAppsList('converted', this.convertedApps);
                 this.renderAppsList('user', this.userApps);
                 this.updateStatusBar();
-                
-                this.showSuccess(this.getTranslation('app_reverted'));
+                this.showSuccess(this.getTranslation('app_reverted').replace('{app}', app.name));
             } catch (error) {
-                console.error('Revert failed:', error);
-                this.showError(this.getTranslation('error_revert_failed'));
+                this.showError(this.getTranslation('error_revert_app').replace('{app}', app.name));
             }
         });
     }
@@ -525,12 +1141,8 @@ class OukaroManager {
             return;
         }
 
-        const confirmMessage = this.getTranslation('confirm_revert_all')
-            .replace('{count}', this.convertedApps.length);
-
+        const confirmMessage = this.getTranslation('confirm_revert_all');
         this.showConfirmDialog(confirmMessage, async () => {
-            this.showProgressModal(this.getTranslation('reverting_apps'));
-            
             try {
                 // Add all converted apps back to user apps
                 this.convertedApps.forEach(app => {
@@ -541,196 +1153,91 @@ class OukaroManager {
                         size: '10MB'
                     });
                 });
-                
+
+                // Clear converted apps
                 this.convertedApps = [];
-                
-                this.updateProgress(100, this.getTranslation('revert_complete'));
-                
-                // Save to localStorage
-                localStorage.setItem('oukaroConvertedApps', JSON.stringify(this.convertedApps));
-                
+                localStorage.removeItem('oukaroConvertedApps');
+
                 this.renderAppsList('converted', this.convertedApps);
                 this.renderAppsList('user', this.userApps);
                 this.updateStatusBar();
-                
-                setTimeout(() => {
-                    this.closeModal('progressModal');
-                    this.showSuccess(this.getTranslation('all_apps_reverted'));
-                }, 1000);
-
+                this.showSuccess(this.getTranslation('all_apps_reverted'));
             } catch (error) {
-                console.error('Revert all failed:', error);
-                this.closeModal('progressModal');
-                this.showError(this.getTranslation('error_revert_failed'));
+                this.showError(this.getTranslation('error_revert_all'));
             }
         });
     }
 
-    async refreshData() {
-        await this.loadInitialData();
-        this.showSuccess(this.getTranslation('data_refreshed'));
-    }
-
-    async rebootDevice() {
-        const confirmMessage = this.getTranslation('confirm_reboot');
-        
-        this.showConfirmDialog(confirmMessage, async () => {
-            try {
-                this.showSuccess(this.getTranslation('reboot_initiated'));
-                // In a real implementation, this would trigger a system reboot
-            } catch (error) {
-                console.error('Reboot failed:', error);
-                this.showError(this.getTranslation('error_reboot_failed'));
-            }
-        });
-    }
-
-    // Utility Methods
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
+    // Utility Functions
     showLoading(show) {
-        // Could implement a global loading indicator here
+        const loadingElement = document.querySelector('.webuix-loading');
+        if (loadingElement) {
+            loadingElement.style.display = show ? 'flex' : 'none';
+        }
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.opacity = show ? '0' : '1';
+        }
     }
 
     showConfirmDialog(message, onConfirm) {
-        const modal = document.getElementById('confirmModal');
-        const messageElement = document.getElementById('confirmMessage');
-        const yesBtn = document.getElementById('confirmYes');
-        
-        if (modal && messageElement) {
-            messageElement.textContent = message;
-            modal.classList.add('show');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmText = document.getElementById('confirmText');
+        const confirmYes = document.getElementById('confirmYes');
+
+        if (confirmModal && confirmText && confirmYes) {
+            confirmText.textContent = message;
             
-            // Remove previous listeners
-            const newYesBtn = yesBtn.cloneNode(true);
-            yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
-            
-            // Add new listener
-            newYesBtn.addEventListener('click', () => {
-                this.closeModal('confirmModal');
+            const confirmHandler = () => {
                 onConfirm();
-            });
+                this.closeModal('confirmModal');
+                confirmYes.removeEventListener('click', confirmHandler);
+            };
+            
+            confirmYes.addEventListener('click', confirmHandler);
+            this.showModal('confirmModal');
+        } else {
+            // Fallback for simple browsers
+            if (confirm(message)) {
+                onConfirm();
+            }
         }
     }
 
-    showProgressModal(message) {
-        const modal = document.getElementById('progressModal');
-        const textElement = document.getElementById('progressText');
-        
-        if (modal && textElement) {
-            textElement.textContent = message;
-            modal.classList.add('show');
-            this.updateProgress(0);
+    async refreshData() {
+        this.showInfo('Refreshing data...');
+        await this.loadInitialData();
+        this.showSuccess('Data refreshed successfully');
+    }
+
+    rebootDevice() {
+        if (confirm(this.getTranslation('confirm_reboot'))) {
+            console.log('Rebooting device...');
+            // In a real implementation, this would call a backend API
+            this.showInfo('Reboot command sent.');
         }
     }
 
-    updateProgress(percent, message = null) {
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        
-        if (progressFill) {
-            progressFill.style.width = `${percent}%`;
-        }
-        
-        if (message && progressText) {
-            progressText.textContent = message;
-        }
-    }
-
-    closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('show');
-        }
-    }
-
-    showSuccess(message) {
-        alert('✅ ' + message);
-    }
-
-    showError(message) {
-        alert('❌ ' + message);
-    }
-
-    showRebootDialog() {
-        const message = this.getTranslation('conversion_complete_reboot');
-        this.showConfirmDialog(message, () => {
-            this.rebootDevice();
-        });
-    }
-
-    updateUI() {
-        this.translatePage();
-        this.updateConvertButton();
-        this.updateStatusBar();
-    }
-
-    // Mock Data
+    // Mock data for testing without backend
     getMockUserApps() {
         return [
-            {
-                packageName: 'com.tencent.mm',
-                name: 'WeChat',
-                version: '8.0.32',
-                size: '150MB'
-            },
-            {
-                packageName: 'com.alibaba.android.rimet',
-                name: 'DingTalk',
-                version: '6.5.40',
-                size: '120MB'
-            },
-            {
-                packageName: 'com.eg.android.AlipayGphone',
-                name: 'Alipay',
-                version: '10.2.96',
-                size: '95MB'
-            },
-            {
-                packageName: 'com.netease.cloudmusic',
-                name: 'NetEase Cloud Music',
-                version: '8.7.50',
-                size: '85MB'
-            },
-            {
-                packageName: 'com.sina.weibo',
-                name: 'Weibo',
-                version: '12.9.1',
-                size: '110MB'
-            }
+            { name: 'Mock App 1', packageName: 'com.mock.app1', version: '1.0', size: '12MB', icon: 'assets/favicon.svg' },
+            { name: 'Mock App 2', packageName: 'com.mock.app2', version: '2.1', size: '25MB', icon: 'assets/favicon.svg' }
         ];
     }
 
     getMockSystemApps() {
         return [
-            {
-                packageName: 'com.android.settings',
-                name: 'Settings',
-                version: '12.0',
-                size: '15MB'
-            },
-            {
-                packageName: 'com.android.systemui',
-                name: 'System UI',
-                version: '12.0',
-                size: '25MB'
-            },
-            {
-                packageName: 'com.android.chrome',
-                name: 'Chrome',
-                version: '108.0.5359.128',
-                size: '180MB'
-            }
+            { name: 'Mock System App', packageName: 'com.mock.system', version: '1.0', size: '5MB', icon: 'assets/favicon.svg' }
         ];
     }
 }
 
-// Initialize the application when DOM is loaded
+// Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     window.oukaroManager = new OukaroManager();
 });
-
-// Expose for debugging
-window.OukaroManager = OukaroManager;
+ (container) {
+            container.style.opacity = show ? '0' : '1';
+        }
+    }

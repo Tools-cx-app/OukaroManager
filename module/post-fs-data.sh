@@ -26,6 +26,13 @@ mkdir -p "$MODDIR/system/app"
 mkdir -p "$MODDIR/system/priv-app"
 mkdir -p "$MODDIR/webroot/locales"
 mkdir -p "$MODDIR/webroot/assets"
+mkdir -p "$MODDIR/common"
+
+# Setup aapt binary for app name extraction (inspired by KOWX712's approach)
+if [ -f "$MODDIR/setup_aapt.sh" ]; then
+    log "Setting up aapt binary..."
+    sh "$MODDIR/setup_aapt.sh"
+fi
 
 # Set proper permissions for webroot
 chmod -R 755 "$MODDIR/webroot"
