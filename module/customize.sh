@@ -1,4 +1,4 @@
-#!/system/bin/sh
+#!/bin/sh
 
 # OukaroManager Customization Script
 # This script runs during module installation to set up the module

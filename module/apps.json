@@ -1,0 +1,10 @@
+[
+  {
+    "package": "com.example.testapp",
+    "label": "Test Application",
+    "sourceDir": "/data/app/com.example.testapp-1/base.apk",
+    "installType": "user",
+    "permissionMode": "default",
+    "targetPath": ""
+  }
+]

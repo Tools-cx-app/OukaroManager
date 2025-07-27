@@ -10,8 +10,8 @@
     "android.permission.WRITE_SETTINGS",
     "android.permission.SYSTEM_ALERT_WINDOW"
   ],
-  "title": "OukaroManager - System App Converter",
-  "description": "Modern WebUIX-compatible system app converter with Material Design inspired by KOWX712/ksu-webui-demo",
+  "title": "OukaroManager",
+  "description": "A simple manager designed by OukaroMF",
   "icon": "assets/icon.png",
   "windowResize": true,
   "backInterceptor": "javascript",
