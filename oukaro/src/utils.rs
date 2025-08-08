@@ -3,20 +3,20 @@ use std::{ffi::CString, fs, path::Path, process::Command};
 use anyhow::Result;
 use regex::Regex;
 
-pub fn mount(fs_type: &str, source: &str, target: impl AsRef<Path>, flags: u64) -> Result<()> {
+pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
     let target = target.as_ref();
+    let source = source.as_ref();
     fs::create_dir_all(target)?;
 
-    let fs_type_cstr = CString::new(fs_type)?;
-    let source_cstr = CString::new(source)?;
+    let source_cstr = CString::new(source.to_str().unwrap_or_default())?;
     let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
 
     unsafe {
         if libc::mount(
             source_cstr.as_ptr(),
             target_cstr.as_ptr(),
-            fs_type_cstr.as_ptr(),
-            flags as u64,
+            std::ptr::null(),
+            libc::MS_BIND,
             std::ptr::null(),
         ) != 0
         {
