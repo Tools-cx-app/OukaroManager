@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::defs::CONFIG_PATH;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug,Clone,Deserialize)]
 pub struct Config {
     app: HashSet<String>,
 }
@@ -27,5 +27,9 @@ impl Config {
 
     pub fn contains(&self, v: &str) -> bool {
         self.app.contains(v)
+    }
+    
+    pub fn get(&self) -> HashSet<String> {
+    self.app
     }
 }
