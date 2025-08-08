@@ -1,0 +1,9 @@
+[package]
+name = "oukaro"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+serde = { version = "1.0.219", features = ["serde_derive"] }
+toml = "0.9.5"
