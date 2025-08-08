@@ -1,9 +1,30 @@
-use std::{path::Path, process::Command};
+use std::{ffi::CString, fs, path::Path, process::Command};
 
 use anyhow::Result;
 use regex::Regex;
 
-pub fn mount() {}
+pub fn mount(fs_type: &str, source: &str, target: impl AsRef<Path>, flags: u64) -> Result<()> {
+    let target = target.as_ref();
+    fs::create_dir_all(target)?;
+
+    let fs_type_cstr = CString::new(fs_type)?;
+    let source_cstr = CString::new(source)?;
+    let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
+
+    unsafe {
+        if libc::mount(
+            source_cstr.as_ptr(),
+            target_cstr.as_ptr(),
+            fs_type_cstr.as_ptr(),
+            flags as u64,
+            std::ptr::null(),
+        ) != 0
+        {
+            return Err(std::io::Error::last_os_error().into());
+        }
+    }
+    Ok(())
+}
 
 pub fn get_mount_state(package: &str) -> Result<bool> {
     let out = Command::new("mount").output()?;
