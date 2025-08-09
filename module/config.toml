@@ -1,1 +1,3 @@
-app = [ "test" , "test1"]
+[app]
+priv_app = ["test", "test1"]
+system_app = ["test", "test1"]
