@@ -37,7 +37,21 @@ fn main() -> Result<()> {
     loop {
         inotify.read_events_blocking(&mut [0; 2048])?;
         config.load_config()?;
-        for i in config.get() {
+        let app = config.get();
+        let priv_app = app.priv_app;
+        let system_app = app.system_app;
+        for i in priv_app {
+            let path = find_data_path(i.clone().as_str())?;
+            let path = Path::new(path.as_str());
+            println!("find {} path", i);
+            let state = get_mount_state(i.as_str())?;
+            println!("the {} is {}", i, if state { "mounted" } else { "unmount" });
+            if state {
+                continue;
+            }
+            mount(path, Path::new(format!("/system/priv-app/{}", i).as_str()))?;
+        }
+        for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
             println!("find {} path", i);
