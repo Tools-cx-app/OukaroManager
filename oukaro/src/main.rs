@@ -59,9 +59,11 @@ fn main() -> Result<()> {
                 .contains(i.as_str());
             let system_path = format!("/system/priv-app/{}", i);
             let system_path = Path::new(system_path.as_str());
-            log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
+
+            log::info!("find {} path", i);
             log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
+
             if state {
                 continue;
             }
@@ -69,6 +71,7 @@ fn main() -> Result<()> {
                 unmount(system_path)?;
                 continue;
             }
+
             mount(path, system_path)?;
         }
         for i in system_app {
@@ -78,11 +81,13 @@ fn main() -> Result<()> {
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
-            log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
             let system_path = format!("/system/app/{}", i);
             let system_path = Path::new(system_path.as_str());
+
+            log::info!("find {} path", i);
             log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
+
             if state {
                 continue;
             }
@@ -90,6 +95,7 @@ fn main() -> Result<()> {
                 unmount(system_path)?;
                 continue;
             }
+
             mount(path, system_path)?;
         }
     }
