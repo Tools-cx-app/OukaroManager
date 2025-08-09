@@ -1,6 +1,7 @@
-use std::path::Path;
+use std::{io::Write, path::Path};
 
 use anyhow::Result;
+use env_logger::Builder;
 use inotify::{Inotify, WatchMask};
 
 use crate::utils::{find_data_path, get_mount_state, mount};
@@ -10,6 +11,22 @@ mod defs;
 mod utils;
 
 fn main() -> Result<()> {
+    let mut builder = Builder::new();
+    builder.format(|buf, record| {
+        let local_time = chrono::Local::now();
+        let time_str = local_time.format("%Y-%m-%d %H:%M:%S%.3f").to_string();
+
+        writeln!(
+            buf,
+            "[{}] [{}] {} {}",
+            time_str,
+            record.level(),
+            record.target(),
+            record.args()
+        )
+    });
+    builder.filter_level(log::LevelFilter::Info).init();
+
     let mut config = config::Config::new();
     let mut inotify = Inotify::init()?;
 

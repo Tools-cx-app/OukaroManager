@@ -44,7 +44,7 @@ pub fn find_data_path(package: &str) -> Result<String> {
     let re = Regex::new(r"^package:(.+?)=.*$").unwrap();
     let caps = re.captures(first_line).unwrap();
     let mut path = caps[1].to_string();
-    
+
     path = path.trim_end().to_string();
 
     Ok(path)
