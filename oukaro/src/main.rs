@@ -53,7 +53,12 @@ fn main() -> Result<()> {
         for i in priv_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            let remove_state = priv_app_cache.unwrap_or_default().contains(i.as_str());
+            let remove_state = priv_app_cache
+                .clone()
+                .unwrap_or_default()
+                .contains(i.as_str());
+            let system_path = format!("/system/priv-app/{}", i);
+            let system_path = Path::new(system_path.as_str());
             log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
             log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
@@ -61,26 +66,31 @@ fn main() -> Result<()> {
                 continue;
             }
             if !remove_state {
-                unmount(Path::new(format!("/system/priv-app/{}", i).as_str()))?;
+                unmount(system_path)?;
                 continue;
             }
-            mount(path, Path::new(format!("/system/priv-app/{}", i).as_str()))?;
+            mount(path, system_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            let remove_state = system_app_cache.unwrap_or_default().contains(i.as_str());
+            let remove_state = system_app_cache
+                .clone()
+                .unwrap_or_default()
+                .contains(i.as_str());
             log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
+            let system_path = format!("/system/app/{}", i);
+            let system_path = Path::new(system_path.as_str());
             log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
             if state {
                 continue;
             }
             if !remove_state {
-                unmount(Path::new(format!("/system/app/{}", i).as_str()))?;
+                unmount(system_path)?;
                 continue;
             }
-            mount(path, Path::new(format!("/system/app/{}", i).as_str()))?;
+            mount(path, system_path)?;
         }
     }
 }
