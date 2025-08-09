@@ -13,3 +13,10 @@ log = "0.4.27"
 regex = "1.11.1"
 serde = { version = "1.0.219", features = ["serde_derive"] }
 toml = "0.9.5"
+
+[profile.release]
+overflow-checks = false
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+strip = true
