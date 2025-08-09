@@ -43,9 +43,9 @@ fn main() -> Result<()> {
         for i in priv_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            println!("find {} path", i);
+            log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
-            println!("the {} is {}", i, if state { "mounted" } else { "unmount" });
+            log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
             if state {
                 continue;
             }
@@ -54,9 +54,9 @@ fn main() -> Result<()> {
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            println!("find {} path", i);
+            log::info!("find {} path", i);
             let state = get_mount_state(i.as_str())?;
-            println!("the {} is {}", i, if state { "mounted" } else { "unmount" });
+            log:: info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
             if state {
                 continue;
             }
