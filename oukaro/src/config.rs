@@ -7,13 +7,22 @@ use crate::defs::CONFIG_PATH;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
-    app: HashSet<String>,
+    app: App,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct App {
+    pub system_app: HashSet<String>,
+    pub priv_app: HashSet<String>,
 }
 
 impl Config {
     pub fn new() -> Self {
         Self {
-            app: HashSet::new(),
+            app: App {
+                system_app: HashSet::new(),
+                priv_app: HashSet::new(),
+            },
         }
     }
 
@@ -22,14 +31,11 @@ impl Config {
         let buf = fs::read_to_string(config)?;
         let toml: Self = toml::from_str(buf.as_str())?;
         self.app = toml.app;
+        log::info!("reloaded config file");
         Ok(())
     }
 
-    pub fn contains(&self, v: &str) -> bool {
-        self.app.contains(v)
-    }
-
-    pub fn get(&self) -> HashSet<String> {
+    pub fn get(&self) -> App {
         self.app.clone()
     }
 }
