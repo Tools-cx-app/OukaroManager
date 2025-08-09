@@ -35,10 +35,6 @@ impl Config {
         Ok(())
     }
 
-    pub fn contains(&self, v: &str) -> bool {
-        self.app.contains(v)
-    }
-
     pub fn get(&self) -> App {
         self.app.clone()
     }
