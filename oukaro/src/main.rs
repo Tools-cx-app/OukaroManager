@@ -2,6 +2,7 @@ use std::{collections::HashSet, fs, io::Write, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
+use fs_extra::dir::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
 
 use crate::{
@@ -43,6 +44,8 @@ fn main() -> Result<()> {
         let app = config.get();
         let priv_app = app.priv_app;
         let system_app = app.system_app;
+        let mut copy_options = CopyOptions::new();
+        copy_options.overwrite = true;
 
         if let None = system_app_cache.clone()
             && let None = priv_app_cache.clone()
@@ -75,10 +78,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
-            fs::copy(
-                path,
-                module_system_path.join(format!("system/priv-app/{}", i)),
-            )?;
+            dir::copy(path, module_system_path, &copy_options)?;
             mount(module_system_path, system_path)?;
         }
         for i in system_app {
@@ -105,7 +105,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
-            fs::copy(path, module_system_path.join(format!("system/app/{}", i)))?;
+            dir::copy(path, module_system_path, &copy_options)?;
             mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
