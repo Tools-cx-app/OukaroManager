@@ -57,6 +57,9 @@ fn main() -> Result<()> {
 
         for i in priv_app {
             let path = find_data_path(i.clone().as_str())?;
+            if path.is_empty() {
+                continue;
+            }
             let path = Path::new(path.as_str());
             let remove_state = !priv_app_cache
                 .clone()
@@ -78,11 +81,18 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
-            dir::copy(path, module_system_path.join(format!("system/app/{}", i)), &copy_options)?;
+            dir::copy(
+                path,
+                module_system_path.join(format!("system/app/{}", i)),
+                &copy_options,
+            )?;
             mount(module_system_path, system_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
+            if path.is_empty() {
+                continue;
+            }
             let path = Path::new(path.as_str());
             let remove_state = !priv_app_cache
                 .clone()
@@ -104,7 +114,11 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
-            dir::copy(path, module_system_path.join(format!("system/app/{}", i)), &copy_options)?;
+            dir::copy(
+                path,
+                module_system_path.join(format!("system/app/{}", i)),
+                &copy_options,
+            )?;
             mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
