@@ -35,6 +35,9 @@ fn main() -> Result<()> {
     let mut inotify = Inotify::init()?;
     let mut priv_app_cache = None;
     let mut system_app_cache = None;
+    let module_system_path = Path::new(SYSTEM_PATH);
+    let mut copy_options = CopyOptions::new();
+    copy_options.overwrite = true;
 
     inotify
         .watches()
@@ -44,8 +47,6 @@ fn main() -> Result<()> {
         let app = config.get();
         let priv_app = app.priv_app;
         let system_app = app.system_app;
-        let mut copy_options = CopyOptions::new();
-        copy_options.overwrite = true;
 
         if let None = system_app_cache.clone()
             && let None = priv_app_cache.clone()
@@ -62,7 +63,6 @@ fn main() -> Result<()> {
                 .unwrap_or_default()
                 .contains(i.as_str());
             let system_path = format!("/system/priv-app/{}", i);
-            let module_system_path = Path::new(SYSTEM_PATH);
             let system_path = Path::new(system_path.as_str());
             let state = get_mount_state(i.as_str())?;
 
@@ -89,7 +89,6 @@ fn main() -> Result<()> {
                 .unwrap_or_default()
                 .contains(i.as_str());
             let system_path = format!("/system/app/{}", i);
-            let module_system_path = Path::new(SYSTEM_PATH);
             let system_path = Path::new(system_path.as_str());
             let state = get_mount_state(i.as_str())?;
 
