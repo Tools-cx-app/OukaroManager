@@ -82,7 +82,7 @@ fn main() -> Result<()> {
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(
-                module_system_path.join(format!("system/priv-app/{}", i)),
+                path,
                 PermissionsExt::from_mode(755),
             )?;
             dir::copy(
@@ -119,7 +119,7 @@ fn main() -> Result<()> {
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(
-                module_system_path.join(format!("system/priv-app/{}", i)),
+                path,
                 PermissionsExt::from_mode(755),
             )?;
             dir::copy(
