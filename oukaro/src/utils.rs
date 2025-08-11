@@ -40,7 +40,7 @@ pub fn find_data_path(package: &str) -> Result<String> {
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
     let re = Regex::new(r"^package:(.+)").unwrap();
-    let caps = match re.captures(stdout) {
+    let caps = match re.captures(&stdout) {
         Some(s) => s,
         None => return Ok(String::new()),
     };
