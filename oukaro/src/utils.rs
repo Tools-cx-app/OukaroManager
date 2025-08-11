@@ -28,7 +28,7 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
 pub fn get_mount_state(package: &str) -> Result<bool> {
     let out = Command::new("mount").output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let re = Regex::new(format!("/system/priv-app/.*{}.*bind", package).as_str()).unwrap();
+    let re = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
     if re.is_match(&stdout) {
         return Ok(true);
     }
