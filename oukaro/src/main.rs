@@ -78,7 +78,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
-            dir::copy(path, module_system_path, &copy_options)?;
+            dir::copy(path, module_system_path.join(format!("system/app/{}", i)), &copy_options)?;
             mount(module_system_path, system_path)?;
         }
         for i in system_app {
@@ -104,7 +104,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
-            dir::copy(path, module_system_path, &copy_options)?;
+            dir::copy(path, module_system_path.join(format!("system/app/{}", i)), &copy_options)?;
             mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
