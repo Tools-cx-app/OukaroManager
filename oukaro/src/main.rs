@@ -1,10 +1,13 @@
-use std::{collections::HashSet, io::Write, path::Path};
+use std::{collections::HashSet, fs, io::Write, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
 use inotify::{Inotify, WatchMask};
 
-use crate::utils::{find_data_path, get_mount_state, mount, unmount};
+use crate::{
+    defs::SYSTEM_PATH,
+    utils::{find_data_path, get_mount_state, mount, unmount},
+};
 
 mod config;
 mod defs;
@@ -56,6 +59,7 @@ fn main() -> Result<()> {
                 .unwrap_or_default()
                 .contains(i.as_str());
             let system_path = format!("/system/priv-app/{}", i);
+            let module_system_path = Path::new(SYSTEM_PATH);
             let system_path = Path::new(system_path.as_str());
             let state = get_mount_state(i.as_str())?;
 
@@ -70,18 +74,24 @@ fn main() -> Result<()> {
                 continue;
             }
 
-            mount(path, system_path)?;
+            fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
+            fs::copy(
+                path,
+                module_system_path.join(format!("system/priv-app/{}", i)),
+            )?;
+            mount(module_system_path, system_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            let remove_state = !system_app_cache
+            let remove_state = !priv_app_cache
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
-            let state = get_mount_state(i.as_str())?;
             let system_path = format!("/system/app/{}", i);
+            let module_system_path = Path::new(SYSTEM_PATH);
             let system_path = Path::new(system_path.as_str());
+            let state = get_mount_state(i.as_str())?;
 
             log::info!("find {} path", i);
             log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
@@ -94,7 +104,9 @@ fn main() -> Result<()> {
                 continue;
             }
 
-            mount(path, system_path)?;
+            fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
+            fs::copy(path, module_system_path.join(format!("system/app/{}", i)))?;
+            mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
