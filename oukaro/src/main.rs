@@ -82,7 +82,7 @@ fn main() -> Result<()> {
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
-                path,
+                path.join("base.apk"),
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
             )?;
@@ -114,7 +114,7 @@ fn main() -> Result<()> {
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
-                path,
+                path.join("base.apk"),
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
             )?;
