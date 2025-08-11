@@ -51,7 +51,7 @@ fn main() -> Result<()> {
         for i in priv_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            let remove_state = priv_app_cache
+            let remove_state = !priv_app_cache
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
             let path = Path::new(path.as_str());
-            let remove_state = system_app_cache
+            let remove_state = !system_app_cache
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
