@@ -37,6 +37,7 @@ fn main() -> Result<()> {
     let mut system_app_cache = None;
     let module_system_path = Path::new(SYSTEM_PATH);
     let mut copy_options = CopyOptions::new();
+    let system_path = Path::new("/system/app");
     copy_options.overwrite = true;
 
     inotify
@@ -65,8 +66,6 @@ fn main() -> Result<()> {
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
-            let system_path = format!("/system/priv-app/{}", i);
-            let system_path = Path::new(system_path.as_str());
             let state = get_mount_state(i.as_str())?;
 
             log::info!("find {} path", i);
@@ -81,10 +80,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
-            fs::set_permissions(
-                path,
-                PermissionsExt::from_mode(755),
-            )?;
+            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
                 path,
                 module_system_path.join(format!("system/app/{}", i)),
@@ -102,8 +98,6 @@ fn main() -> Result<()> {
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
-            let system_path = format!("/system/app/{}", i);
-            let system_path = Path::new(system_path.as_str());
             let state = get_mount_state(i.as_str())?;
 
             log::info!("find {} path", i);
@@ -118,10 +112,7 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
-            fs::set_permissions(
-                path,
-                PermissionsExt::from_mode(755),
-            )?;
+            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
                 path,
                 module_system_path.join(format!("system/app/{}", i)),
