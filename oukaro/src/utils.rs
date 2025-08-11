@@ -36,12 +36,11 @@ pub fn get_mount_state(package: &str) -> Result<bool> {
 
 pub fn find_data_path(package: &str) -> Result<String> {
     let out = Command::new("pm")
-        .args(&["pm", "list", "packages", "-f", package])
+        .args(&["list", "packages", "-f", package])
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let first_line = stdout.lines().next().unwrap_or_default();
     let re = Regex::new(r"^package:(.+)").unwrap();
-    let caps = match re.captures(first_line) {
+    let caps = match re.captures(stdout) {
         Some(s) => s,
         None => return Ok(String::new()),
     };
