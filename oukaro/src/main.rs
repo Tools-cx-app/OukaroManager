@@ -37,7 +37,6 @@ fn main() -> Result<()> {
         .watches()
         .add(Path::new(defs::CONFIG_PATH), WatchMask::MODIFY)?;
     loop {
-        inotify.read_events_blocking(&mut [0; 2048])?;
         config.load_config()?;
         let app = config.get();
         let priv_app = app.priv_app;
@@ -98,5 +97,6 @@ fn main() -> Result<()> {
 
             mount(path, system_path)?;
         }
+        inotify.read_events_blocking(&mut [0; 2048])?;
     }
 }
