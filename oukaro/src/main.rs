@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs, io::Write, path::Path};
+use std::{collections::HashSet, fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
@@ -81,6 +81,10 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
+            fs::set_permissions(
+                module_system_path.join(format!("system/priv-app/{}", i)),
+                PermissionsExt::from_mode(755),
+            )?;
             dir::copy(
                 path,
                 module_system_path.join(format!("system/app/{}", i)),
@@ -114,6 +118,10 @@ fn main() -> Result<()> {
             }
 
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
+            fs::set_permissions(
+                module_system_path.join(format!("system/priv-app/{}", i)),
+                PermissionsExt::from_mode(755),
+            )?;
             dir::copy(
                 path,
                 module_system_path.join(format!("system/app/{}", i)),
