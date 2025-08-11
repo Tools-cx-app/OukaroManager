@@ -32,7 +32,6 @@ fn main() -> Result<()> {
     let mut priv_app_cache = None;
     let mut system_app_cache = None;
 
-    config.load_config()?;
     inotify
         .watches()
         .add(Path::new(defs::CONFIG_PATH), WatchMask::MODIFY)?;
