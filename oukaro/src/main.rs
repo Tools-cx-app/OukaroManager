@@ -69,7 +69,7 @@ fn main() -> Result<()> {
             if state {
                 continue;
             }
-            if !remove_state {
+            if remove_state {
                 unmount(system_path)?;
                 continue;
             }
@@ -99,7 +99,7 @@ fn main() -> Result<()> {
             if state {
                 continue;
             }
-            if !remove_state {
+            if remove_state {
                 unmount(system_path)?;
                 continue;
             }
