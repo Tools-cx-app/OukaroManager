@@ -55,7 +55,6 @@ pub fn find_data_path(package: &str) -> Result<String> {
 
 pub fn unmount(target: impl AsRef<Path>) -> Result<()> {
     let target = target.as_ref();
-    fs::create_dir_all(target)?;
 
     let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
 
