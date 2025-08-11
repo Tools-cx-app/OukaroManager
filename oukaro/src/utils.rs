@@ -6,7 +6,6 @@ use regex::Regex;
 pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
     let target = target.as_ref();
     let source = source.as_ref();
-    fs::create_dir_all(target)?;
     let source_cstr = CString::new(source.to_str().unwrap_or_default())?;
     let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
 
