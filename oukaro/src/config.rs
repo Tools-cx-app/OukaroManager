@@ -31,7 +31,7 @@ impl Config {
         let buf = fs::read_to_string(config)?;
         let toml: Self = toml::from_str(buf.as_str())?;
         self.app = toml.app;
-        log::info!("reloaded config file");
+        log::info!("loaded config file");
         Ok(())
     }
 
