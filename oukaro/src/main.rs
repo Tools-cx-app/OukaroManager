@@ -2,7 +2,7 @@ use std::{fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
-use fs_extra::dir::{self, CopyOptions};
+use fs_extra::file::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
 
 use crate::{
@@ -82,10 +82,9 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
+            fs::copy(
                 path,
-                module_system_path.join(format!("system/priv-app/{}", i)),
-                &copy_options,
+                module_system_path.join(format!("system/priv-app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
             mount(module_system_path, system_path)?;
@@ -116,10 +115,9 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
+            fs::copy(
                 path,
-                module_system_path.join(format!("system/app/{}", i)),
-                &copy_options,
+                module_system_path.join(format!("system/app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
             mount(module_system_path, system_path)?;
