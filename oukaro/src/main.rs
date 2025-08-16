@@ -38,6 +38,7 @@ fn main() -> Result<()> {
     let module_system_path = Path::new(SYSTEM_PATH);
     let mut copy_options = CopyOptions::new();
     let system_path = Path::new("/system/app");
+    let priv_app_path = Path::new("/system/priv-app");
     copy_options.overwrite = true;
 
     inotify
@@ -87,7 +88,7 @@ fn main() -> Result<()> {
                 module_system_path.join(format!("system/priv-app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
-            mount(module_system_path, system_path)?;
+            mount(module_system_path.join("system/priv-app"), priv_app_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -120,7 +121,7 @@ fn main() -> Result<()> {
                 module_system_path.join(format!("system/app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
-            mount(module_system_path, system_path)?;
+            mount(module_system_path.join("system/app"), system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
