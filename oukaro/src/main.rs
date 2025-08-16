@@ -1,10 +1,9 @@
-use std::{collections::HashSet, fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
+use std::{fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
 use fs_extra::dir::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
-use libc::loff_t;
 
 use crate::{
     defs::SYSTEM_PATH,
