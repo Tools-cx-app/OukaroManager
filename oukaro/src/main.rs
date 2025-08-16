@@ -1,8 +1,8 @@
-use std::{collections::HashSet, fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
+use std::{fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
-use fs_extra::dir::{self, CopyOptions};
+use fs_extra::file::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
 
 use crate::{
@@ -38,6 +38,7 @@ fn main() -> Result<()> {
     let module_system_path = Path::new(SYSTEM_PATH);
     let mut copy_options = CopyOptions::new();
     let system_path = Path::new("/system/app");
+    let priv_app_path = Path::new("/system/priv-app");
     copy_options.overwrite = true;
 
     inotify
@@ -79,14 +80,15 @@ fn main() -> Result<()> {
                 continue;
             }
 
+            log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
-                path.join("base.apk"),
-                module_system_path.join(format!("system/app/{}", i)),
-                &copy_options,
+            fs::copy(
+                path,
+                module_system_path.join(format!("system/priv-app/{}/base.apk", i)),
             )?;
-            mount(module_system_path, system_path)?;
+            log::info!("mounting {}", i);
+            mount(module_system_path.join("system/priv-app"), priv_app_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -111,14 +113,15 @@ fn main() -> Result<()> {
                 continue;
             }
 
+            log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
-                path.join("base.apk"),
-                module_system_path.join(format!("system/app/{}", i)),
-                &copy_options,
+            fs::copy(
+                path,
+                module_system_path.join(format!("system/app/{}/base.apk", i)),
             )?;
-            mount(module_system_path, system_path)?;
+            log::info!("mounting {}", i);
+            mount(module_system_path.join("system/app"), system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
