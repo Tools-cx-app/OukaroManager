@@ -1,4 +1,4 @@
-use std::{ffi::CString, fs, path::Path, process::Command};
+use std::{ffi::CString, path::Path, process::Command};
 
 use anyhow::Result;
 use regex::Regex;
@@ -27,8 +27,12 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
 pub fn get_mount_state(package: &str) -> Result<bool> {
     let out = Command::new("mount").output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let re = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
-    if re.is_match(&stdout) {
+    let re_priv_app = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
+    let re_system_app = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
+    if re_priv_app.is_match(&stdout) {
+        return Ok(true);
+    }
+    if re_system_app.is_match(&stdout) {
         return Ok(true);
     }
     return Ok(false);
@@ -39,7 +43,7 @@ pub fn find_data_path(package: &str) -> Result<String> {
         .args(&["list", "packages", "-f", package])
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let re = Regex::new(r"^package:(.+)").unwrap();
+    let re = Regex::new(r"^package:([^=]+)=").unwrap();
     let caps = match re.captures(&stdout) {
         Some(s) => s,
         None => return Ok(String::new()),

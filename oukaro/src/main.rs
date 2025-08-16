@@ -82,19 +82,13 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            if let Err(e) = dir::copy(
-                path.join("base.apk"),
+            dir::copy(
+                path,
                 module_system_path.join(format!("system/priv-app/{}", i)),
                 &copy_options,
-            ) {
-                log::error!("copy files failed: {}", e);
-                panic!();
-            }
+            )?;
             log::info!("mounting {}", i);
-            if let Err(e) = mount(module_system_path, system_path) {
-                log::error!("mount failed: {}", e);
-                panic!();
-            }
+            mount(module_system_path, system_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -122,19 +116,13 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            if let Err(e) = dir::copy(
-                path.join("base.apk"),
+            dir::copy(
+                path,
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
-            ) {
-                log::error!("copy files failed: {}", e);
-                panic!();
-            }
+            )?;
             log::info!("mounting {}", i);
-            if let Err(e) = mount(module_system_path, system_path) {
-                log::error!("mount failed: {}", e);
-                panic!();
-            }
+            mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
