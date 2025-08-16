@@ -79,6 +79,7 @@ fn main() -> Result<()> {
                 continue;
             }
 
+            log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
@@ -86,6 +87,7 @@ fn main() -> Result<()> {
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
             )?;
+            log::info!("mounting {}", i);
             mount(module_system_path, system_path)?;
         }
         for i in system_app {
@@ -111,6 +113,7 @@ fn main() -> Result<()> {
                 continue;
             }
 
+            log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             dir::copy(
@@ -118,6 +121,7 @@ fn main() -> Result<()> {
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
             )?;
+            log::info!("mounting {}", i);
             mount(module_system_path, system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
