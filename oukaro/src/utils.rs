@@ -40,10 +40,10 @@ pub fn get_mount_state(package: &str) -> Result<bool> {
 
 pub fn find_data_path(package: &str) -> Result<String> {
     let out = Command::new("pm")
-        .args(&["list", "packages", "-f", package])
+        .args(&["path", package])
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let re = Regex::new(r"^package:([^=]+)=").unwrap();
+    let re = Regex::new(r"^package:(.*)").unwrap();
     let caps = match re.captures(&stdout) {
         Some(s) => s,
         None => return Ok(String::new()),
