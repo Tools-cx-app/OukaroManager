@@ -43,8 +43,12 @@ pub fn find_data_path(package: &str) -> Result<String> {
         .args(&["list", "packages", "-f", package])
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let after_pkg = stdout.splitn(2, ':').nth(1)?;
-    let mut path = after_pkg.splitn(2, '=').next();
+    let re = Regex::new(r"^package:([^=]+)=").unwrap();
+    let caps = match re.captures(&stdout) {
+        Some(s) => s,
+        None => return Ok(String::new()),
+    };
+    let mut path = caps[1].to_string();
 
     path = path.trim_end().to_string();
     log::info!("{} path is {}", package, path);
