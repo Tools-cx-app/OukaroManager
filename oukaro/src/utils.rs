@@ -43,20 +43,8 @@ pub fn find_data_path(package: &str) -> Result<String> {
         .args(&["list", "packages", "-f", package])
         .output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
-    let after_pkg = match stdout.splitn(2, ':').nth(1) {
-        Some(s) => s.to_string(),
-        None => {
-            log::error!("parse failed");
-            panic!();
-        }
-    };
-    let mut path = match after_pkg.splitn(2, '=').next() {
-        Some(s) => s.to_string(),
-        None => {
-            log::error!("parse failed");
-            panic!();
-        }
-    };
+    let after_pkg = stdout.splitn(2, ':').nth(1)?;
+    let mut path = after_pkg.splitn(2, '=').next();
 
     path = path.trim_end().to_string();
     log::info!("{} path is {}", package, path);
