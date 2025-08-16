@@ -4,6 +4,7 @@ use anyhow::Result;
 use env_logger::Builder;
 use fs_extra::dir::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
+use libc::loff_t;
 
 use crate::{
     defs::SYSTEM_PATH,
@@ -82,13 +83,19 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
+            if let Err(e) = dir::copy(
                 path.join("base.apk"),
-                module_system_path.join(format!("system/app/{}", i)),
+                module_system_path.join(format!("system/priv-app/{}", i)),
                 &copy_options,
-            )?;
+            ) {
+                log::error!("copy files failed: {}", e);
+                panic!();
+            }
             log::info!("mounting {}", i);
-            mount(module_system_path, system_path)?;
+            if let Err(e) = mount(module_system_path, system_path) {
+                log::error!("mount failed: {}", e);
+                panic!();
+            }
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -116,13 +123,19 @@ fn main() -> Result<()> {
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir::copy(
+            if let Err(e) = dir::copy(
                 path.join("base.apk"),
                 module_system_path.join(format!("system/app/{}", i)),
                 &copy_options,
-            )?;
+            ) {
+                log::error!("copy files failed: {}", e);
+                panic!();
+            }
             log::info!("mounting {}", i);
-            mount(module_system_path, system_path)?;
+            if let Err(e) = mount(module_system_path, system_path) {
+                log::error!("mount failed: {}", e);
+                panic!();
+            }
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
