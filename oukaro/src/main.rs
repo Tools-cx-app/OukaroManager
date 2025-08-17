@@ -2,7 +2,7 @@ use std::{fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
-use fs_extra::file::{self, CopyOptions};
+use fs_extra::dir::{self, CopyOptions};
 use inotify::{Inotify, WatchMask};
 
 use crate::{
@@ -40,6 +40,9 @@ fn main() -> Result<()> {
     let system_path = Path::new("/system/app");
     let priv_app_path = Path::new("/system/priv-app");
     copy_options.overwrite = true;
+
+    dir::copy("/system/app", system_path, &copy_options)?;
+    dir::copy("/system/priv-app", priv_app_path, &copy_options)?;
 
     inotify
         .watches()
