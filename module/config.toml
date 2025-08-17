@@ -1,3 +1,0 @@
-[app]
-priv_app = ["test", "test1"]
-system_app = ["test", "test1"]
