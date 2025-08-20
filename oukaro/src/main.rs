@@ -96,7 +96,7 @@ fn main() -> Result<()> {
                 continue;
             }
             let path = Path::new(path.as_str());
-            let remove_state = !priv_app_cache
+            let remove_state = !system_app_cache
                 .clone()
                 .unwrap_or_default()
                 .contains(i.as_str());
