@@ -1,16 +1,16 @@
 use std::{collections::HashSet, fs, path::Path};
 
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::defs::CONFIG_PATH;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
     app: App,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct App {
     pub system_app: HashSet<String>,
     pub priv_app: HashSet<String>,
@@ -29,6 +29,10 @@ impl Config {
     pub fn load_config(&mut self) -> Result<()> {
         let config = Path::new(CONFIG_PATH);
         let buf = fs::read_to_string(config)?;
+        if !config.exists() {
+            let toml = toml::to_string(&self.app).unwrap();
+            fs::write(config, toml)?;
+        }
         let toml: Self = toml::from_str(buf.as_str())?;
         self.app = toml.app;
         log::info!("loaded config file");
