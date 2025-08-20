@@ -7,7 +7,7 @@ use inotify::{Inotify, WatchMask};
 
 use crate::{
     defs::SYSTEM_PATH,
-    utils::{find_data_path, get_mount_state, mount, unmount},
+    utils::{dir_copys, find_data_path, get_mount_state, mount, unmount},
 };
 
 mod config;
@@ -41,8 +41,8 @@ fn main() -> Result<()> {
     let priv_app_path = Path::new("/system/priv-app");
     copy_options.overwrite = true;
 
-    dir::copy("/system/app", system_path, &copy_options)?;
-    dir::copy("/system/priv-app", priv_app_path, &copy_options)?;
+    dir_copys("/system/app", system_path);
+    dir_copys("/system/priv-app", priv_app_path);
 
     inotify
         .watches()

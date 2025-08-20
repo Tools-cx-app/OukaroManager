@@ -1,6 +1,10 @@
 use std::{ffi::CString, path::Path, process::Command};
 
 use anyhow::Result;
+use fs_extra::{
+    dir::{CopyOptions, copy},
+    error::ErrorKind,
+};
 use regex::Regex;
 
 pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
@@ -24,6 +28,22 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
+pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
+    let mut options = CopyOptions::new();
+    options.overwrite = true;
+
+    match copy(from, to, &options) {
+        Ok(_) => {}
+        Err(e) => {
+            match e.kind {
+                ErrorKind::PermissionDenied => log::error!("copy files not have Permission"),
+                _ => log::error!("copy files failed: {:?}", e.kind),
+            }
+            panic!();
+        }
+    }
+}
+
 pub fn get_mount_state(package: &str) -> Result<bool> {
     let out = Command::new("mount").output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
@@ -39,9 +59,7 @@ pub fn get_mount_state(package: &str) -> Result<bool> {
 }
 
 pub fn find_data_path(package: &str) -> Result<String> {
-    let out = Command::new("pm")
-        .args(&["path", package])
-        .output()?;
+    let out = Command::new("pm").args(&["path", package]).output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
     let re = Regex::new(r"^package:(.*)").unwrap();
     let caps = match re.captures(&stdout) {
