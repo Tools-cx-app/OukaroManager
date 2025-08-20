@@ -81,14 +81,14 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("system/priv-app/{}", i)))?;
+            fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(
                 path,
-                module_system_path.join(format!("system/priv-app/{}/base.apk", i)),
+                module_system_path.join(format!("priv-app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
-            mount(module_system_path.join("system/priv-app"), priv_app_path)?;
+            mount(module_system_path.join("priv-app"), priv_app_path)?;
         }
         for i in system_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -114,14 +114,11 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("system/app/{}", i)))?;
+            fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            fs::copy(
-                path,
-                module_system_path.join(format!("system/app/{}/base.apk", i)),
-            )?;
+            fs::copy(path, module_system_path.join(format!("app/{}/base.apk", i)))?;
             log::info!("mounting {}", i);
-            mount(module_system_path.join("system/app"), system_path)?;
+            mount(module_system_path.join("app"), system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
     }
