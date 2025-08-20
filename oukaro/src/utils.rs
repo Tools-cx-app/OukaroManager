@@ -29,19 +29,12 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
 }
 
 pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
-    let mut options = CopyOptions::new();
-    options.overwrite = true;
-
-    match copy(from, to, &options) {
-        Ok(_) => {}
-        Err(e) => {
-            match e.kind {
-                ErrorKind::PermissionDenied => log::error!("copy files not have Permission"),
-                _ => log::error!("copy files failed: {:?}", e.kind),
-            }
-            panic!();
-        }
-    }
+    Command::new("cp")
+        .arg("-r")
+        .arg(from.as_ref())
+        .arg(to.as_ref())
+        .output()
+        .unwrap();
 }
 
 pub fn get_mount_state(package: &str) -> Result<bool> {
