@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs, path::Path};
+use std::{collections::HashSet, fs, io::Write, path::Path};
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,8 @@ impl Config {
         let buf = fs::read_to_string(config)?;
         if !config.exists() {
             let toml = toml::to_string(&self.app).unwrap();
-            fs::write(config, toml)?;
+            let mut file = fs::File::create(config)?;
+            file.write_all(toml.as_bytes())?;
         }
         let toml: Self = toml::from_str(buf.as_str())?;
         self.app = toml.app;
