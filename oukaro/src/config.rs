@@ -29,12 +29,12 @@ impl Config {
     /// load config
     pub fn load_config(&mut self) -> Result<()> {
         let config = Path::new(CONFIG_PATH);
-        let buf = fs::read_to_string(config)?;
         if !config.exists() {
-            let toml = toml::to_string(&self.app).unwrap();
+            let toml = toml::to_string(&self).unwrap();
             let mut file = fs::File::create(config)?;
             file.write_all(toml.as_bytes())?;
         }
+        let buf = fs::read_to_string(config)?;
         let toml: Self = toml::from_str(buf.as_str())?;
         self.app = toml.app;
         log::info!("loaded config file");

@@ -39,8 +39,11 @@ fn main() -> Result<()> {
     let priv_app_path = Path::new("/system/priv-app");
 
     /// copy system files to module path
+    fs::create_dir_all(module_system_path)?;
+    fs::create_dir_all(module_system_path)?;
     dir_copys("/system/app", module_system_path.join("app"));
     dir_copys("/system/priv-app", module_system_path.join("priv-app"));
+    config.load_config()?;
 
     inotify
         .watches()
@@ -84,7 +87,6 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(
                 path,
@@ -118,7 +120,6 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(path, module_system_path.join(format!("app/{}/base.apk", i)))?;
             log::info!("mounting {}", i);
