@@ -39,8 +39,8 @@ fn main() -> Result<()> {
     let priv_app_path = Path::new("/system/priv-app");
 
     /// copy system files to module path
-    dir_copys("/system/app", system_path);
-    dir_copys("/system/priv-app", priv_app_path);
+    dir_copys("/system/app", module_system_path.join("app"));
+    dir_copys("/system/priv-app", module_system_path.join("priv-app"));
 
     inotify
         .watches()
