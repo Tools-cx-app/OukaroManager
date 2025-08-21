@@ -26,6 +26,7 @@ impl Config {
         }
     }
 
+    /// load config
     pub fn load_config(&mut self) -> Result<()> {
         let config = Path::new(CONFIG_PATH);
         let buf = fs::read_to_string(config)?;
@@ -40,6 +41,7 @@ impl Config {
         Ok(())
     }
 
+    /// gef app config in local config
     pub fn get(&self) -> App {
         self.app.clone()
     }

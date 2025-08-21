@@ -38,6 +38,7 @@ fn main() -> Result<()> {
     let system_path = Path::new("/system/app");
     let priv_app_path = Path::new("/system/priv-app");
 
+    /// copy system files to module path
     dir_copys("/system/app", system_path);
     dir_copys("/system/priv-app", priv_app_path);
 
@@ -45,11 +46,13 @@ fn main() -> Result<()> {
         .watches()
         .add(Path::new(defs::CONFIG_PATH), WatchMask::MODIFY)?;
     loop {
+        /// load config
         config.load_config()?;
         let app = config.get();
         let priv_app = app.priv_app;
         let system_app = app.system_app;
 
+        /// add cache
         if let None = system_app_cache.clone()
             && let None = priv_app_cache.clone()
         {
@@ -88,6 +91,7 @@ fn main() -> Result<()> {
                 module_system_path.join(format!("priv-app/{}/base.apk", i)),
             )?;
             log::info!("mounting {}", i);
+            /// mount app to system
             mount(module_system_path.join("priv-app"), priv_app_path)?;
         }
         for i in system_app {
@@ -118,6 +122,7 @@ fn main() -> Result<()> {
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(path, module_system_path.join(format!("app/{}/base.apk", i)))?;
             log::info!("mounting {}", i);
+            /// mount app to system
             mount(module_system_path.join("app"), system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;

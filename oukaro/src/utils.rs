@@ -28,6 +28,9 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
+/// Folder Copy
+/// from: source folder path
+/// to: target path
 pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     let output = Command::new("cp")
         .arg("-r")
@@ -46,6 +49,8 @@ pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     }
 }
 
+/// get packge mount state
+/// packge: packge name
 pub fn get_mount_state(package: &str) -> Result<bool> {
     let out = Command::new("mount").output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
@@ -60,6 +65,8 @@ pub fn get_mount_state(package: &str) -> Result<bool> {
     return Ok(false);
 }
 
+/// get packge data path in =/data
+/// packge: packge name
 pub fn find_data_path(package: &str) -> Result<String> {
     let out = Command::new("pm").args(&["path", package]).output()?;
     let stdout = String::from_utf8_lossy(&out.stdout);
@@ -76,6 +83,8 @@ pub fn find_data_path(package: &str) -> Result<String> {
     Ok(path)
 }
 
+///umount files
+///target: should umount files path
 pub fn unmount(target: impl AsRef<Path>) -> Result<()> {
     let target = target.as_ref();
 
