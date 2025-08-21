@@ -29,12 +29,21 @@ pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
 }
 
 pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
-    Command::new("cp")
+    let output = Command::new("cp")
         .arg("-r")
         .arg(from.as_ref())
         .arg(to.as_ref())
         .output()
         .unwrap();
+
+    if !output.status.success() {
+        log::error!(
+            "copy files failed: stdout: {}, stderr {}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        panic!();
+    }
 }
 
 pub fn get_mount_state(package: &str) -> Result<bool> {
