@@ -77,7 +77,7 @@ pub fn find_data_path(package: &str) -> Result<String> {
     };
     let mut path = caps[1].to_string();
 
-    path = path.trim_end().trim_end_matches("/base.apk").to_string();
+    path = path.trim_end().trim_end_matches("base.apk").to_string();
     log::info!("{} path is {}", package, path);
 
     Ok(path)
