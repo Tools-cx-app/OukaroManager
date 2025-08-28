@@ -87,6 +87,7 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
+            fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(
                 path,
@@ -120,6 +121,7 @@ fn main() -> Result<()> {
             }
 
             log::info!("copying some files for {}", i);
+            fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
             fs::set_permissions(path, PermissionsExt::from_mode(755))?;
             fs::copy(path, module_system_path.join(format!("app/{}/base.apk", i)))?;
             log::info!("mounting {}", i);
