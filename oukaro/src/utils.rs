@@ -79,6 +79,7 @@ pub fn find_data_path(package: &str) -> Result<String> {
 
     path = path.trim_end().trim_end_matches("base.apk").to_string();
     log::info!("{} path is {}", package, path);
+    path.push_str("*");
 
     Ok(path)
 }
