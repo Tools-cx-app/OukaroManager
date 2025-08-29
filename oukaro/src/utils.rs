@@ -1,10 +1,6 @@
 use std::{ffi::CString, path::Path, process::Command};
 
 use anyhow::Result;
-use fs_extra::{
-    dir::{CopyOptions, copy},
-    error::ErrorKind,
-};
 use regex::Regex;
 
 pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
