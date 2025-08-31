@@ -88,11 +88,8 @@ fn main() -> Result<()> {
 
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
-            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            dir_copys(
-                path,
-                module_system_path.join(format!("priv-app/{}/", i)),
-            );
+            fs::set_permissions(find_data_path(i.clone().as_str())?, PermissionsExt::from_mode(755))?;
+            dir_copys(path, module_system_path.join(format!("priv-app/{}/", i)));
             log::info!("mounting {}", i);
             // mount app to system
             mount(module_system_path.join("priv-app"), priv_app_path)?;
@@ -122,7 +119,7 @@ fn main() -> Result<()> {
 
             log::info!("copying some files for {}", i);
             fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
-            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
+            fs::set_permissions(find_data_path(i.clone().as_str())?, PermissionsExt::from_mode(755))?;
             dir_copys(path, module_system_path.join(format!("app/{}/", i)));
             log::info!("mounting {}", i);
             // mount app to system
