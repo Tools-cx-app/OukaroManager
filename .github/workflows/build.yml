@@ -22,33 +22,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup NDK
-        run: |
-          ndk_url=$(wget -qO- https://github.com/android/ndk/releases/latest \
-                      | grep -oP 'href="\Khttps://dl.google.com/android/repository/android-ndk-[^"]*-linux.zip' \
-                      | head -n1)
-          wget -O ndk.zip "$ndk_url" -nv
-          unzip -q ndk.zip -d "$HOME"
-          mv "$HOME/android-ndk-"* "$HOME/ndk"
-
+      # Rust工具链设置
       - name: Setup Rust toolchains
         run: |
           rustup default nightly
-          rustup target add aarch64-linux-android
+          rustup target add aarch64-unknown-linux-gnu
           rustup component add rust-src
-
+      
+      # 安装构建依赖
       - name: Install build dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y gcc-multilib
-          cargo install --locked cargo-ndk
-
+          sudo apt update
+          sudo apt install -y gcc-multilib
+          sudo snap install zig --classic --beta
+          cargo install cargo-zigbuild --locked
+      
       - name: Build
         run: |
           export ANDROID_NDK_HOME="$HOME/ndk"
           export ANDROID_NDK_ROOT="$ANDROID_NDK_HOME"
           cd oukaro
-          cargo ndk -t arm64-v8a build --release
+          cargo zigbuild --target aarch64-unknown-linux-gnu -r
           cp target/aarch64-linux-android/release/oukaro ../module/
 
       - name: Upload build artifacts
