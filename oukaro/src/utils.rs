@@ -45,22 +45,6 @@ pub fn dir_copys(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     }
 }
 
-/// get packge mount state
-/// packge: packge name
-pub fn get_mount_state(package: &str) -> Result<bool> {
-    let out = Command::new("mount").output()?;
-    let stdout = String::from_utf8_lossy(&out.stdout);
-    let re_priv_app = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
-    let re_system_app = Regex::new(format!("/system/priv-app/{}", package).as_str()).unwrap();
-    if re_priv_app.is_match(&stdout) {
-        return Ok(true);
-    }
-    if re_system_app.is_match(&stdout) {
-        return Ok(true);
-    }
-    return Ok(false);
-}
-
 /// get packge data path in =/data
 /// packge: packge name
 pub fn find_data_path(package: &str) -> Result<String> {
@@ -75,22 +59,6 @@ pub fn find_data_path(package: &str) -> Result<String> {
 
     path = path.trim_end().trim_end_matches("base.apk").to_string();
     log::info!("{} path is {}", package, path);
-    path.push_str("*");
 
     Ok(path)
-}
-
-///umount files
-///target: should umount files path
-pub fn unmount(target: impl AsRef<Path>) -> Result<()> {
-    let target = target.as_ref();
-
-    let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
-
-    unsafe {
-        if libc::umount(target_cstr.as_ptr()) != 0 {
-            return Err(std::io::Error::last_os_error().into());
-        }
-    }
-    Ok(())
 }
