@@ -6,7 +6,7 @@ use inotify::{Inotify, WatchMask};
 
 use crate::{
     defs::SYSTEM_PATH,
-    utils::{dir_copys, find_data_path, get_mount_state, mount, unmount},
+    utils::{dir_copys, find_data_path, mount},
 };
 
 mod config;
@@ -32,13 +32,11 @@ fn main() -> Result<()> {
 
     let mut config = config::Config::new();
     let mut inotify = Inotify::init()?;
-    let mut priv_app_cache = None;
-    let mut system_app_cache = None;
     let module_system_path = Path::new(SYSTEM_PATH);
     let system_path = Path::new("/system/app");
     let priv_app_path = Path::new("/system/priv-app");
 
-    /// copy system files to module path
+    // copy system files to module path
     fs::create_dir_all(module_system_path)?;
     fs::create_dir_all(module_system_path)?;
     dir_copys("/system/app", module_system_path.join("app"));
@@ -49,19 +47,11 @@ fn main() -> Result<()> {
         .watches()
         .add(Path::new(defs::CONFIG_PATH), WatchMask::MODIFY)?;
     loop {
-        /// load config
+        // load config
         config.load_config()?;
         let app = config.get();
         let priv_app = app.priv_app;
         let system_app = app.system_app;
-
-        /// add cache
-        if let None = system_app_cache.clone()
-            && let None = priv_app_cache.clone()
-        {
-            system_app_cache = Some(system_app.clone());
-            priv_app_cache = Some(priv_app.clone());
-        }
 
         for i in priv_app {
             let path = find_data_path(i.clone().as_str())?;
@@ -69,31 +59,17 @@ fn main() -> Result<()> {
                 continue;
             }
             let path = Path::new(path.as_str());
-            let remove_state = !priv_app_cache
-                .clone()
-                .unwrap_or_default()
-                .contains(i.as_str());
-            let state = get_mount_state(i.as_str())?;
 
             log::info!("find {} path", i);
-            log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
-
-            if state {
-                continue;
-            }
-            if remove_state {
-                unmount(system_path)?;
-                continue;
-            }
-
             log::info!("copying some files for {}", i);
-            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            fs::copy(
-                path,
-                module_system_path.join(format!("priv-app/{}/base.apk", i)),
+            fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
+            fs::set_permissions(
+                find_data_path(i.clone().as_str())?,
+                PermissionsExt::from_mode(755),
             )?;
+            dir_copys(path, module_system_path.join(format!("priv-app/{}/", i)));
             log::info!("mounting {}", i);
-            /// mount app to system
+            // mount app to system
             mount(module_system_path.join("priv-app"), priv_app_path)?;
         }
         for i in system_app {
@@ -102,28 +78,16 @@ fn main() -> Result<()> {
                 continue;
             }
             let path = Path::new(path.as_str());
-            let remove_state = !system_app_cache
-                .clone()
-                .unwrap_or_default()
-                .contains(i.as_str());
-            let state = get_mount_state(i.as_str())?;
-
             log::info!("find {} path", i);
-            log::info!("the {} is {}", i, if state { "mounted" } else { "unmount" });
-
-            if state {
-                continue;
-            }
-            if remove_state {
-                unmount(system_path)?;
-                continue;
-            }
-
             log::info!("copying some files for {}", i);
-            fs::set_permissions(path, PermissionsExt::from_mode(755))?;
-            fs::copy(path, module_system_path.join(format!("app/{}/base.apk", i)))?;
+            fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
+            fs::set_permissions(
+                find_data_path(i.clone().as_str())?,
+                PermissionsExt::from_mode(755),
+            )?;
+            dir_copys(path, module_system_path.join(format!("app/{}/", i)));
             log::info!("mounting {}", i);
-            /// mount app to system
+            // mount app to system
             mount(module_system_path.join("app"), system_path)?;
         }
         inotify.read_events_blocking(&mut [0; 2048])?;
