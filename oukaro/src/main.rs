@@ -1,12 +1,12 @@
-use std::{fs, io::Write, os::unix::fs::PermissionsExt, path::Path};
+use std::{io::Write, path::Path};
 
 use anyhow::Result;
 use env_logger::Builder;
 use inotify::{Inotify, WatchMask};
 
 use crate::{
-    defs::SYSTEM_PATH,
-    utils::{dir_copys, find_data_path, mount},
+    defs::{LOWER_PATH, SYSTEM_PATH, UPPER_PATH, WORK_PATH},
+    utils::{dir_copys, find_data_path, mount_overlyfs},
 };
 
 mod config;
@@ -32,64 +32,31 @@ fn main() -> Result<()> {
 
     let mut config = config::Config::new();
     let mut inotify = Inotify::init()?;
-    let module_system_path = Path::new(SYSTEM_PATH);
-    let system_path = Path::new("/system/app");
-    let priv_app_path = Path::new("/system/priv-app");
+    let system_path = Path::new("/system");
 
-    // copy system files to module path
-    fs::create_dir_all(module_system_path)?;
-    fs::create_dir_all(module_system_path)?;
-    dir_copys("/system/app", module_system_path.join("app"));
-    dir_copys("/system/priv-app", module_system_path.join("priv-app"));
-    config.load_config()?;
+    inotify.watches().add(SYSTEM_PATH, WatchMask::MODIFY)?;
+    mount_overlyfs(LOWER_PATH, UPPER_PATH, WORK_PATH, "/system/")?;
 
-    inotify
-        .watches()
-        .add(Path::new(defs::CONFIG_PATH), WatchMask::MODIFY)?;
     loop {
-        // load config
         config.load_config()?;
-        let app = config.get();
-        let priv_app = app.priv_app;
-        let system_app = app.system_app;
 
-        for i in priv_app {
-            let path = find_data_path(i.clone().as_str())?;
-            if path.is_empty() {
-                continue;
-            }
-            let path = Path::new(path.as_str());
+        let apps = config.get();
 
-            log::info!("find {} path", i);
-            log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("priv-app/{}", i)))?;
-            fs::set_permissions(
-                find_data_path(i.clone().as_str())?,
-                PermissionsExt::from_mode(755),
-            )?;
-            dir_copys(path, module_system_path.join(format!("priv-app/{}/", i)));
-            log::info!("mounting {}", i);
-            // mount app to system
-            mount(module_system_path.join("priv-app"), priv_app_path)?;
+        log::info!("handling system/priv-app");
+        for app in apps.priv_app {
+            let data_path = find_data_path(&app)?;
+
+            dir_copys(data_path, system_path.join("priv-app"));
+            log::info!("mount successful.")
         }
-        for i in system_app {
-            let path = find_data_path(i.clone().as_str())?;
-            if path.is_empty() {
-                continue;
-            }
-            let path = Path::new(path.as_str());
-            log::info!("find {} path", i);
-            log::info!("copying some files for {}", i);
-            fs::create_dir_all(module_system_path.join(format!("app/{}", i)))?;
-            fs::set_permissions(
-                find_data_path(i.clone().as_str())?,
-                PermissionsExt::from_mode(755),
-            )?;
-            dir_copys(path, module_system_path.join(format!("app/{}/", i)));
-            log::info!("mounting {}", i);
-            // mount app to system
-            mount(module_system_path.join("app"), system_path)?;
+
+        log::info!("handling system/app");
+        for app in apps.system_app {
+            let data_path = find_data_path(&app)?;
+
+            dir_copys(data_path, system_path.join("app"));
+            log::info!("mount successful.")
         }
-        inotify.read_events_blocking(&mut [0; 2048])?;
+        inotify.read_events_blocking(&mut [0; 1024])?;
     }
 }

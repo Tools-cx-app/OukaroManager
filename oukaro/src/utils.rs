@@ -1,23 +1,39 @@
-use std::{ffi::CString, path::Path, process::Command};
+use std::{ffi::CString, fs, path::Path, process::Command};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use libc::{MS_NODEV, MS_NOEXEC, MS_NOSUID};
 use regex::Regex;
 
-pub fn mount(source: impl AsRef<Path>, target: impl AsRef<Path>) -> Result<()> {
-    let target = target.as_ref();
-    let source = source.as_ref();
-    let source_cstr = CString::new(source.to_str().unwrap_or_default())?;
-    let target_cstr = CString::new(target.to_str().unwrap_or_default())?;
+pub fn mount_overlyfs<P>(lower: P, upper: P, work: P, target: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let (lower, upper, work, target) = (
+        lower.as_ref(),
+        upper.as_ref(),
+        work.as_ref(),
+        target.as_ref(),
+    );
+
+    fs::create_dir_all(lower)?;
+    fs::create_dir_all(upper)?;
+    fs::create_dir_all(work)?;
+    fs::create_dir_all(target)?;
+
+    let lower = CString::new(lower.to_str().context("no lowerdir").unwrap())?;
+
+    let fstype = CString::new("overlay")?;
+    let source = CString::new("overlay")?;
 
     unsafe {
-        if libc::mount(
-            source_cstr.as_ptr(),
-            target_cstr.as_ptr(),
-            std::ptr::null(),
-            libc::MS_BIND,
-            std::ptr::null(),
-        ) != 0
-        {
+        let r = libc::mount(
+            source.as_ptr(),
+            target.to_string_lossy().as_ptr() as *const _,
+            fstype.as_ptr(),
+            (MS_NOSUID | MS_NODEV | MS_NOEXEC) as libc::c_ulong,
+            lower.as_ptr() as *const libc::c_void,
+        );
+        if r != 0 {
             return Err(std::io::Error::last_os_error().into());
         }
     }
