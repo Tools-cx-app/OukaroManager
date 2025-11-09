@@ -32,11 +32,24 @@ This module uses KernelSU's mount system to inject selected user applications in
 
 ## 🖥️ 使用方法 | Usage
 
+### Webui
 1. 打开KernelSU Manager（如果KernelSU Manager不可用，可使用MMRL/WebUIX portable） | Open KernelSU Manager (if KernelSU Manager is unavailable, use MMRL/WebUIX portable)
 2. 导航到OukaroManager模块WebUI | Navigate to OukaroManager module WebUI
 3. 选择要转换的应用 | Select the apps you want to convert
 4. 在 `System` 或 `Priv` 路径之间选择 | Choose between `System` or `Priv` path
 5. 点击转换并在提示时重启 | Click convert and reboot when prompted
+
+### 手动修改 | Manual 
+> 配置文件路径在 /data/adb/modules/oukaro_manager/config.toml
+
+e.g
+```toml
+[app]
+system_app = ["bin.mt.plus"]
+priv_app = ["com termux"]
+```
+
+> 注意 `system_app` 和 `priv_app` 仅能使用应用包名
 
 ## ⚠️ 系统要求 | System Requirements
 
