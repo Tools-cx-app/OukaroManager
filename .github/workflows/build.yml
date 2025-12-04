@@ -84,6 +84,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: okrmng
-          path: target/aarch64-linux-android/release/okrmng
+          path: okrmng/target/aarch64-linux-android/release/okrmng
           retention-days: 30
           
